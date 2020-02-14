@@ -550,7 +550,7 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
             applyAdjustmentU16(ADJUSTMENT_FW_MIN_THROTTLE_DOWN_PITCH_ANGLE, &mixerConfigMutable()->fwMinThrottleDownPitchAngle, delta, 0, FW_MIN_THROTTLE_DOWN_PITCH_ANGLE_MAX);
             break;
         case ADJUSTMENT_VTX_POWER_LEVEL:
-            applyAdjustmentU8(ADJUSTMENT_VTX_POWER_LEVEL, &vtxSettingsConfigMutable()->power, delta, VTX_TABLE_MIN_POWER_LEVELS, vtxTablePowerLevels);
+            applyAdjustmentU8(ADJUSTMENT_VTX_POWER_LEVEL, &vtxSettingsConfigMutable()->power, delta, VTX_TABLE_MIN_POWER_LEVELS + 1, vtxTablePowerLevels);
             break;
         default:
             break;

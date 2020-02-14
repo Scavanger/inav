@@ -92,7 +92,7 @@ void globalFunctionsProcess(int8_t functionId) {
                 break;
             case GLOBAL_FUNCTION_ACTION_SET_VTX_POWER_LEVEL:
                 if (conditionValue && !previousValue) {
-                    vtxSettingsConfigMutable()->power = constrain(globalFunctionsStates[functionId].value, VTX_TABLE_MIN_POWER_LEVELS, vtxTablePowerLevels);
+                    vtxSettingsConfigMutable()->power = constrain(globalFunctionsStates[functionId].value, VTX_TABLE_MIN_POWER_LEVELS + 1, vtxTablePowerLevels);
                 }
                 break;
             case GLOBAL_FUNCTION_ACTION_INVERT_ROLL:
