@@ -1374,7 +1374,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         }
         break;
 
-//#if defined(USE_VTX_COMMON)
+#if defined(USE_VTX_COMMON)
     case MSP_VTX_CONFIG:
         {
             const vtxDevice_t *vtxDevice = vtxCommonDevice();
@@ -1396,21 +1396,21 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
             sbufWriteU8(dst, vtxSettingsConfig()->lowPowerDisarm);
 
             sbufWriteU16(dst, vtxSettingsConfig()->pitModeFreq);
-//#ifdef USE_VTX_TABLE
+#ifdef USE_VTX_TABLE
             sbufWriteU8(dst, 1);   // vtxtable is available
             sbufWriteU8(dst, vtxTableConfig()->bands);
             sbufWriteU8(dst, vtxTableConfig()->channels);
             sbufWriteU8(dst, vtxTableConfig()->powerLevels);
-//#else
+#else
             sbufWriteU8(dst, 0);
             sbufWriteU8(dst, 0);
             sbufWriteU8(dst, 0);
             sbufWriteU8(dst, 0);
-//#endif
+#endif
 
         }
         break;
-//#endif
+#endif
 
     case MSP_NAME:
         {
