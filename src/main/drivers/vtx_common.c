@@ -131,9 +131,9 @@ bool vtxCommonGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     return vtxDevice->vTable->getPowerIndex(vtxDevice, pIndex);
 }
 
-bool vtxCommonGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
+bool vtxCommonGetStatus(const vtxDevice_t *vtxDevice, unsigned *status)
 {
-    return vtxDevice->vTable->getPitMode(vtxDevice, pOnOff);
+	return vtxDevice->vTable->getStatus(vtxDevice, status);
 }
 
 bool vtxCommonGetFrequency(const vtxDevice_t *vtxDevice, uint16_t *pFrequency)

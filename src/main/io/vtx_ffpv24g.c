@@ -435,14 +435,14 @@ static bool impl_GetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     return true;
 }
 
-static bool impl_GetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
+static bool impl_GetStatus(const vtxDevice_t *vtxDevice, unsigned *status)
 {
     if (!impl_IsReady(vtxDevice)) {
         return false;
     }
 
-    // TODO: Not inplemented
-    *pOnOff = 0;
+    // Pitmode is not supported
+    *status = 0;
     return true;
 }
 
@@ -490,8 +490,8 @@ static const vtxVTable_t impl_vtxVTable = {
     .setFrequency = impl_SetFreq,
     .getBandAndChannel = impl_GetBandAndChannel,
     .getPowerIndex = impl_GetPowerIndex,
-    .getPitMode = impl_GetPitMode,
     .getFrequency = impl_GetFreq,
+	.getStatus = impl_GetStatus,
 };
 
 static vtxDevice_t impl_vtxDevice = {

@@ -935,16 +935,6 @@ static bool vtxSAGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     return true;
 }
 
-static bool vtxSAGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
-{
-    if (!vtxSAIsReady(vtxDevice) || saDevice.version < 2) {
-        return false;
-    }
-
-    *pOnOff = (saDevice.mode & SA_MODE_GET_PITMODE) ? 1 : 0;
-    return true;
-}
-
 static bool vtxSAGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq)
 {
     if (!vtxSAIsReady(vtxDevice)) {
@@ -960,6 +950,17 @@ static bool vtxSAGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq)
     return true;
 }
 
+static bool vtxSAGetStatus(const vtxDevice_t *vtxDevice, unsigned *status)
+{
+    if (!(vtxSAIsReady(vtxDevice) && (saDevice.version == 2))) {
+        return false;
+    }
+
+    *status = (saDevice.mode & SA_MODE_GET_PITMODE) ? VTX_STATUS_PIT_MODE : 0;
+
+    return true;
+}
+
 static const vtxVTable_t saVTable = {
     .process = vtxSAProcess,
     .getDeviceType = vtxSAGetDeviceType,
@@ -970,8 +971,8 @@ static const vtxVTable_t saVTable = {
     .setFrequency = vtxSASetFreq,
     .getBandAndChannel = vtxSAGetBandAndChannel,
     .getPowerIndex = vtxSAGetPowerIndex,
-    .getPitMode = vtxSAGetPitMode,
     .getFrequency = vtxSAGetFreq,
+	.getStatus = vtxSAGetStatus,
 };
 
 

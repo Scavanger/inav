@@ -50,6 +50,12 @@
 // band/channel or frequency in MHz (3 bits for band and 3 bits for channel)
 #define VTXCOMMON_MSP_BANDCHAN_CHKVAL ((uint16_t)((7 << 3) + 7))
 
+// VTX status flags
+enum {
+    VTX_STATUS_PIT_MODE = 1 << 0,
+    VTX_STATUS_LOCKED = 1 << 1,
+};
+
 typedef enum {
     VTXDEV_UNSUPPORTED = 0, // reserved for MSP
     VTXDEV_RTC6705    = 1,
@@ -82,7 +88,7 @@ typedef struct vtxVTable_s {
 
     bool (*getBandAndChannel)(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel);
     bool (*getPowerIndex)(const vtxDevice_t *vtxDevice, uint8_t *pIndex);
-    bool (*getPitMode)(const vtxDevice_t *vtxDevice, uint8_t *pOnOff);
+    bool (*getStatus)(const vtxDevice_t *vtxDevice, unsigned *status);
     bool (*getFrequency)(const vtxDevice_t *vtxDevice, uint16_t *pFreq);
 } vtxVTable_t;
 
@@ -105,7 +111,7 @@ void vtxCommonSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff);
 void vtxCommonSetFrequency(vtxDevice_t *vtxDevice, uint16_t freq);
 bool vtxCommonGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel);
 bool vtxCommonGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex);
-bool vtxCommonGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff);
+bool vtxCommonGetStatus(const vtxDevice_t *vtxDevice, unsigned *status);
 bool vtxCommonGetFrequency(const vtxDevice_t *vtxDevice, uint16_t *pFreq);
 const char *vtxCommonLookupBandName(const vtxDevice_t *vtxDevice, int band);
 char vtxCommonLookupBandLetter(const vtxDevice_t *vtxDevice, int band);

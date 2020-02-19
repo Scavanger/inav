@@ -517,13 +517,13 @@ static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     return true;
 }
 
-static bool vtxTrampGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
+static bool vtxTrampGetStatus(const vtxDevice_t *vtxDevice, unsigned *status)
 {
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
 
-    *pOnOff = trampData.pitMode;
+    *status = trampData.pitMode ? VTX_STATUS_PIT_MODE : 0;
     return true;
 }
 
@@ -547,8 +547,8 @@ static const vtxVTable_t trampVTable = {
     .setFrequency = vtxTrampSetFreq,
     .getBandAndChannel = vtxTrampGetBandAndChannel,
     .getPowerIndex = vtxTrampGetPowerIndex,
-    .getPitMode = vtxTrampGetPitMode,
     .getFrequency = vtxTrampGetFreq,
+	.getStatus = vtxTrampGetStatus,
 };
 
 

@@ -175,12 +175,12 @@ static bool vtxProcessPower(vtxDevice_t *vtxDevice)
 
 static bool vtxProcessPitMode(vtxDevice_t *vtxDevice)
 {
-    uint8_t pitOnOff;
+    unsigned vtxStatus;
 
     bool        currPmSwitchState = false;
     static bool prevPmSwitchState = false;
 
-    if (!ARMING_FLAG(ARMED) && vtxCommonGetPitMode(vtxDevice, &pitOnOff)) {
+    if (!ARMING_FLAG(ARMED) && vtxCommonGetStatus(vtxDevice, &vtxStatus)) {
 
         // Not supported on INAV yet. It might not be that useful.
 #if 0
@@ -201,13 +201,13 @@ static bool vtxProcessPitMode(vtxDevice_t *vtxDevice)
                 if (isModeActivationConditionPresent(BOXVTXPITMODE)) {
 #endif
                 if (0) {
-                    if (!pitOnOff) {
+                    if (!vtxStatus & VTX_STATUS_PIT_MODE) {
                         vtxCommonSetPitMode(vtxDevice, true);
                         return true;
                     }
                 }
             } else {
-                if (pitOnOff) {
+                if (vtxStatus & VTX_STATUS_PIT_MODE) {
                     vtxCommonSetPitMode(vtxDevice, false);
                     return true;
                 }

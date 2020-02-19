@@ -60,7 +60,7 @@
 #define MSP_PROTOCOL_VERSION                0   // Same version over MSPv1 & MSPv2 - message format didn't change and it backward compatible
 
 #define API_VERSION_MAJOR                   2   // increment when major changes are made
-#define API_VERSION_MINOR                   4   // increment when any change is made, reset to zero when major changes are released after changing API_VERSION_MAJOR
+#define API_VERSION_MINOR                   5   // increment when any change is made, reset to zero when major changes are released after changing API_VERSION_MAJOR
 
 #define API_VERSION_LENGTH                  2
 
@@ -279,6 +279,8 @@
 #define MSP_RC_DEADBAND          125    //out message         deadbands for yaw alt pitch roll
 #define MSP_SENSOR_ALIGNMENT     126    //out message         orientation of acc,gyro,mag
 #define MSP_LED_STRIP_MODECOLOR  127    //out message         Get LED strip mode_color settings
+#define MSP_VTXTABLE_BAND        128    //out message         vtxTable band/channel data
+#define MSP_VTXTABLE_POWERLEVEL  129    //out message         vtxTable powerLevel data
 
 #define MSP_SET_RAW_RC           200    //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201    //in message          fix, numsat, lat, lon, alt, speed
@@ -300,6 +302,8 @@
 #define MSP_SET_RESET_CURR_PID   219    //in message          resetting the current pid profile to defaults
 #define MSP_SET_SENSOR_ALIGNMENT 220    //in message          set the orientation of the acc,gyro,mag
 #define MSP_SET_LED_STRIP_MODECOLOR 221 //in  message         Set LED strip mode_color settings
+#define MSP_SET_VTXTABLE_BAND    222    //in message          set vtxTable band/channel data (one band at a time)
+#define MSP_SET_VTXTABLE_POWERLEVEL 223 //in message          set vtxTable powerLevel data (one powerLevel at a time)
 
 // #define MSP_BIND                 240    //in message          no param
 // #define MSP_ALARMS               242
