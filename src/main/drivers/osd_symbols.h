@@ -118,7 +118,7 @@
 
 #define SYM_RPM                   0x8B // 139 RPM
 //                                0x8C // 140 -
-//                                0x8D // 141 -
+#define SYM_LQ                    0x8D // 141 -
 //                                0x8E // 142 -
 //                                0x8F // 143 -
 

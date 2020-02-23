@@ -72,6 +72,9 @@ const char rcChannelLetters[] = "AERT";
 
 static uint16_t rssi = 0;                  // range: [0;1023]
 static timeUs_t lastMspRssiUpdateUs = 0;
+#ifdef USE_RX_LINK_QUALITY_INFO
+static uint8_t linkQuality = 0;
+#endif
 
 #define MSP_RSSI_TIMEOUT_US     1500000   // 1.5 sec
 #define RX_LQ_INTERVAL_MS       200
@@ -405,6 +408,32 @@ void resumeRxSignal(void)
     failsafeOnRxResume();
 }
 
+#ifdef USE_RX_LINK_QUALITY_INFO
+#define LINK_QUALITY_SAMPLE_COUNT 16
+
+static uint8_t updateLinkQualitySamples(uint8_t value)
+{
+    static uint8_t samples[LINK_QUALITY_SAMPLE_COUNT];
+    static uint8_t sampleIndex = 0;
+    static unsigned sum = 0;
+
+    sum += value - samples[sampleIndex];
+    samples[sampleIndex] = value;
+    sampleIndex = (sampleIndex + 1) % LINK_QUALITY_SAMPLE_COUNT;
+    return sum / LINK_QUALITY_SAMPLE_COUNT;
+}
+#endif
+
+static void setLinkQuality(bool validFrame)
+{
+#ifdef USE_RX_LINK_QUALITY_INFO
+    // calculate new sample mean
+    linkQuality = updateLinkQualitySamples(validFrame ? LINK_QUALITY_MAX_VALUE : 0);
+#else
+    UNUSED(validFrame);
+#endif
+}
+
 bool rxUpdateCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTime)
 {
     UNUSED(currentDeltaTime);
@@ -422,6 +451,8 @@ bool rxUpdateCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTime)
         rxSignalReceived = !rxIsInFailsafeMode;
         needRxSignalBefore = currentTimeUs + rxRuntimeConfig.rxSignalTimeout;
     }
+
+    setLinkQuality(rxSignalReceived);
 
     if (frameStatus & RX_FRAME_PROCESSING_REQUIRED) {
         auxiliaryProcessingRequired = true;
@@ -581,30 +612,26 @@ void parseRcChannels(const char *input)
 
 #define RSSI_SAMPLE_COUNT 16
 
-static void setRSSIValue(uint16_t rssiValue, rssiSource_e source, bool filtered)
+static uint16_t updateRssiSamples(uint16_t value)
+{
+    static uint16_t samples[RSSI_SAMPLE_COUNT];
+    static uint8_t sampleIndex = 0;
+    static unsigned sum = 0;
+
+    sum += value - samples[sampleIndex];
+    samples[sampleIndex] = value;
+    sampleIndex = (sampleIndex + 1) % RSSI_SAMPLE_COUNT;
+    return sum / RSSI_SAMPLE_COUNT;
+}
+
+static void setRSSIValue(uint16_t rssiValue, rssiSource_e source)
 {
     if (source != activeRssiSource) {
         return;
     }
 
-    static uint16_t rssiSamples[RSSI_SAMPLE_COUNT];
-    static uint8_t rssiSampleIndex = 0;
-    static unsigned sum = 0;
-
-    if (filtered) {
-        // Value is already filtered
-        rssi = rssiValue;
-
-    } else {
-        sum = sum + rssiValue;
-        sum = sum - rssiSamples[rssiSampleIndex];
-        rssiSamples[rssiSampleIndex] = rssiValue;
-        rssiSampleIndex = (rssiSampleIndex + 1) % RSSI_SAMPLE_COUNT;
-
-        int16_t rssiMean = sum / RSSI_SAMPLE_COUNT;
-
-        rssi = rssiMean;
-    }
+    // calculate new sample mean
+    rssi = updateRssiSamples(rssiValue);
 
     // Apply min/max values
     int rssiMin = rxConfig()->rssiMin * RSSI_VISIBLE_FACTOR;
@@ -636,7 +663,7 @@ static void updateRSSIFromChannel(void)
     if (rxConfig()->rssi_channel > 0) {
         int pwmRssi = rcChannels[rxConfig()->rssi_channel - 1].raw;
         int rawRSSI = (uint16_t)((constrain(pwmRssi - 1000, 0, 1000) / 1000.0f) * (RSSI_MAX_VALUE * 1.0f));
-        setRSSIValue(rawRSSI, RSSI_SOURCE_RX_CHANNEL, false);
+        setRSSIValue(rawRSSI, RSSI_SOURCE_RX_CHANNEL);
     }
 }
 
@@ -644,15 +671,15 @@ static void updateRSSIFromADC(void)
 {
 #ifdef USE_ADC
     uint16_t rawRSSI = adcGetChannel(ADC_RSSI) / 4;    // Reduce to [0;1023]
-    setRSSIValue(rawRSSI, RSSI_SOURCE_ADC, false);
+    setRSSIValue(rawRSSI, RSSI_SOURCE_ADC);
 #else
-    setRSSIValue(0, RSSI_SOURCE_ADC, false);
+    setRSSIValue(0, RSSI_SOURCE_ADC);
 #endif
 }
 
 static void updateRSSIFromProtocol(void)
 {
-    setRSSIValue(lqTrackerGet(&rxLQTracker), RSSI_SOURCE_RX_PROTOCOL, false);
+    setRSSIValue(lqTrackerGet(&rxLQTracker), RSSI_SOURCE_RX_PROTOCOL);
 }
 
 void updateRSSI(timeUs_t currentTimeUs)
@@ -688,6 +715,18 @@ rssiSource_e getRSSISource(void)
 {
     return activeRssiSource;
 }
+
+#ifdef USE_RX_LINK_QUALITY_INFO
+uint8_t rxGetLinkQuality(void)
+{
+    return linkQuality;
+}
+
+uint8_t rxGetLinkQualityPercent(void)
+{
+    return scaleRange(rxGetLinkQuality(), 0, LINK_QUALITY_MAX_VALUE, 0, 100);
+}
+#endif
 
 uint16_t rxGetRefreshRate(void)
 {

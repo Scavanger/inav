@@ -44,6 +44,10 @@
     #define USE_RPM_FILTER
 #endif
 
+#if !defined(USE_OSD)
+#undef USE_RX_LINK_QUALITY_INFO
+#endif
+
 #ifdef USE_ITCM_RAM
 #define FAST_CODE                   __attribute__((section(".tcm_code")))
 #define NOINLINE                    __NOINLINE

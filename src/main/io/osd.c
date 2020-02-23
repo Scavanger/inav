@@ -1286,6 +1286,16 @@ static bool osdDrawSingleElement(uint8_t item)
             }
             break;
         }
+//#ifdef USE_RX_LINK_QUALITY_INFO
+    case OSD_LINK_QUALITY:
+        {
+            // change range to 0-9 (two sig. fig. adds little extra value, also reduces screen estate)
+            uint8_t osdLinkQuality = constrain(rxGetLinkQuality() * 10 / LINK_QUALITY_MAX_VALUE, 0, 9);
+
+            tfp_sprintf(buff, "%1d", osdLinkQuality);
+            break;
+        }
+//#endif
 
     case OSD_MAIN_BATT_VOLTAGE:
         osdDisplayBatteryVoltage(elemPosX, elemPosY, getBatteryRawVoltage(), 2 + osdConfig()->main_voltage_decimals, osdConfig()->main_voltage_decimals);

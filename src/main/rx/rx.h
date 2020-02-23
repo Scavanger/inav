@@ -48,6 +48,7 @@
 #define DELAY_5_HZ (1000000 / 5)
 
 #define RSSI_MAX_VALUE 1023
+#define LINK_QUALITY_MAX_VALUE 255
 
 typedef enum {
     RX_FRAME_PENDING = 0,                       // No new data available from receiver
@@ -187,6 +188,8 @@ bool rxIsReceivingSignal(void);
 bool rxAreFlightChannelsValid(void);
 bool calculateRxChannelsAndUpdateFailsafe(timeUs_t currentTimeUs);
 bool isRxPulseValid(uint16_t pulseDuration);
+uint8_t rxGetLinkQuality(void);
+uint8_t rxGetLinkQualityPercent(void);
 
 uint8_t calculateChannelRemapping(const uint8_t *channelMap, uint8_t channelMapEntryCount, uint8_t channelToRemap);
 void parseRcChannels(const char *input);
@@ -196,6 +199,9 @@ void updateRSSI(timeUs_t currentTimeUs);
 // Returns RSSI in [0, RSSI_MAX_VALUE] range.
 uint16_t getRSSI(void);
 rssiSource_e getRSSISource(void);
+
+uint8_t rxGetLinkQuality(void);
+uint8_t rxGetLinkQualityPercent(void);
 
 void resetAllRxChannelRangeConfigurations(void);
 
