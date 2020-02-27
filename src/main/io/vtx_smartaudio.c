@@ -669,16 +669,14 @@ static bool saValidateBandAndChannel(uint8_t band, uint8_t channel)
 
 void saSetBandAndChannel(uint8_t band, uint8_t channel)
 {
-	if (saValidateBandAndChannel(band, channel)) {
-		static uint8_t buf[6] = { 0xAA, 0x55, SACMD(SA_CMD_SET_CHAN), 1 };
+	static uint8_t buf[6] = { 0xAA, 0x55, SACMD(SA_CMD_SET_CHAN), 1 };
 
-		buf[4] = SA_BANDCHAN_TO_DEVICE_CHVAL(band - 1, channel - 1);
-		buf[5] = CRC8(buf, 5);
-		LOG_D(VTX, "vtxSASetBandAndChannel set index band %d channel %d value sent 0x%x\r\n", band, channel, buf[4]);
+	buf[4] = SA_BANDCHAN_TO_DEVICE_CHVAL(band, channel);
+	buf[5] = CRC8(buf, 5);
+	LOG_D(VTX, "vtxSASetBandAndChannel set index band %d channel %d value sent 0x%x\r\n", band, channel, buf[4]);
 
-		//this will clear saDevice.mode & SA_MODE_GET_FREQ_BY_FREQ
-		saQueueCmd(buf, 6);
-	}
+	//this will clear saDevice.mode & SA_MODE_GET_FREQ_BY_FREQ
+	saQueueCmd(buf, 6);
 }
 
 void saSetMode(int mode)
@@ -816,7 +814,9 @@ static bool vtxSAIsReady(const vtxDevice_t *vtxDevice)
 void vtxSASetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel)
 {
 	UNUSED(vtxDevice);
-	saSetBandAndChannel(band, channel);
+	if (saValidateBandAndChannel(band, channel)) {
+		saSetBandAndChannel(band - 1, channel - 1);
+	}
 }
  static void vtxSASetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index)
 {
@@ -921,15 +921,12 @@ static bool vtxSAGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand,
 		return false;
 	}
 
-	if (saDevice.mode & SA_MODE_GET_FREQ_BY_FREQ) {
-		*pBand = 0;
-		*pChannel = 0;
-		return true;
-	} else {
-		*pBand = SA_DEVICE_CHVAL_TO_BAND(saDevice.channel);
-		*pChannel = SA_DEVICE_CHVAL_TO_CHANNEL(saDevice.channel);
-		return true;
-	}
+    // if in user-freq mode then report band as zero
+    *pBand = (saDevice.mode & SA_MODE_GET_FREQ_BY_FREQ) ? 0 :
+        (SA_DEVICE_CHVAL_TO_BAND(saDevice.channel) + 1);
+    *pChannel = SA_DEVICE_CHVAL_TO_CHANNEL(saDevice.channel) + 1;
+
+    return true;
 }
 
 static bool vtxSAGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
