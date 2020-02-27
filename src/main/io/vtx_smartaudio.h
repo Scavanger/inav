@@ -33,7 +33,8 @@
 #define VTX_SMARTAUDIO_BAND_COUNT (VTX_SMARTAUDIO_MAX_BAND - VTX_SMARTAUDIO_MIN_BAND + 1)
 #define VTX_SMARTAUDIO_CHANNEL_COUNT (VTX_SMARTAUDIO_MAX_CHANNEL - VTX_SMARTAUDIO_MIN_CHANNEL + 1)
 
-#define VTX_SMARTAUDIO_POWER_COUNT 4
+#define VTX_SMARTAUDIO_MAX_POWER_COUNT 5
+#define VTX_SMARTAUDIO_DEFAULT_POWER_COUNT 4
 #define VTX_SMARTAUDIO_DEFAULT_POWER 1
 
 #define VTX_SMARTAUDIO_MIN_FREQUENCY_MHZ 5000        //min freq in MHz
@@ -62,19 +63,27 @@
 
 // For generic API use, but here for now
 
+typedef enum {
+	SA_UNKNOWN,
+	SA_1_0,
+	SA_2_0,
+	SA_2_1
+} smartAudioVersion_e;
+
 typedef struct smartAudioDevice_s {
-    int8_t version;
+	smartAudioVersion_e version;
     int8_t channel;
     int8_t power;
     int8_t mode;
     uint16_t freq;
     uint16_t orfreq;
+    bool willBootIntoPitMode;
 } smartAudioDevice_t;
 
 typedef struct saPowerTable_s {
-    int rfpower;
-    int16_t valueV1;
-    int16_t valueV2;
+    int mW; // rfpower
+    int16_t dbi; //valueV1
+    			//valueV2
 } saPowerTable_t;
 
 typedef struct smartAudioStat_s {
@@ -89,7 +98,9 @@ typedef struct smartAudioStat_s {
 
 extern smartAudioDevice_t saDevice;
 extern saPowerTable_t saPowerTable[];
-extern const char * const saPowerNames[];
+
+extern uint8_t saPowerCount;
+extern const char * saPowerNames[VTX_SMARTAUDIO_MAX_POWER_COUNT + 1];
 extern smartAudioStat_t saStat;
 
 extern uint16_t sa_smartbaud;
