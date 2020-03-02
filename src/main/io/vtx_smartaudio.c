@@ -347,14 +347,16 @@ static void saProcessResponse(uint8_t *buf, int len)
 					saPowerTable[2].dbi, saPowerTable[3].dbi);
 			//LOG_D(VTX, "processResponse: V2.1 received vtx power value %d\r\n",buf[7]);
 			rawPowerValue = buf[7];
-		}
 
-		saDevice.power = 0; //set to unknown power level if the reported one doesnt match any of the known ones
-		LOG_D(VTX, "processResponse: rawPowerValue is %d, legacy power is %d\r\n", rawPowerValue, buf[3]);
-		for (int8_t i = 0; i < saPowerCount; i++) {
-			if (rawPowerValue == saPowerTable[i].dbi) {
-				saDevice.power = i + 1;
-			}
+            saDevice.power = 0; //set to unknown power level if the reported one doesnt match any of the known ones
+            LOG_D(VTX, "processResponse: rawPowerValue is %d, legacy power is %d\r\n", rawPowerValue, buf[3]);
+            for (int8_t i = 0; i < saPowerCount; i++) {
+                if (rawPowerValue == saPowerTable[i].dbi) {
+                    saDevice.power = i + 1;
+                }
+            }
+		} else {
+		    saDevice.power = rawPowerValue + 1;
 		}
 
 		DEBUG_SET(DEBUG_SMARTAUDIO, 0, saDevice.version * 100 + saDevice.mode);
