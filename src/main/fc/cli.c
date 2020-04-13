@@ -92,6 +92,9 @@ extern uint8_t __config_end;
 #include "io/ledstrip.h"
 #include "io/osd.h"
 #include "io/serial.h"
+#include "io/vtx_string.h"
+#include "io/vtx_smartaudio.h"
+#include "io/vtx.h"
 
 #include "navigation/navigation.h"
 #include "navigation/navigation_private.h"
@@ -1930,6 +1933,129 @@ static void cliGlobalFunctions(char *cmdline) {
 }
 #endif
 
+//Todo: Remove !einself!!
+//#ifdef USE_VTX_SMARTAUDIO
+
+static void cliSmartaudio(char *cmdline)
+{
+    char *token;
+    char *save_ptr;
+
+    if (saDevice.version == SA_UNKNOWN) {
+        cliPrintf("VTX offline or non smartaudio vtx.\r\n");
+        return;
+    }
+
+    token = strtok_r(cmdline, " ", &save_ptr);
+
+    // Print current settings when called without sub command
+    if (!token) {
+        vtxDevice_t *vtxDevice = vtxCommonDevice();
+
+        if (!vtxCommonDeviceIsReady(vtxDevice)) {
+            cliPrintf("VTX not ready.");
+            return;
+        }
+
+        cliPrintf("Status: Online\r\n");
+
+        cliPrintf("Version: ");
+        switch (saDevice.version) {
+            case SA_1_0:
+                cliPrintf("1.0\r\n");
+                break;
+            case SA_2_0:
+                cliPrintf("2.0\r\n");
+                break;
+            case SA_2_1:
+                cliPrintf("2.1\r\n");
+                break;
+            default:
+                cliPrintf("Unknown\r\n");
+                return;
+        }
+
+        cliPrintf("Pitmode: %s\r\n", (saDevice.mode & SA_MODE_GET_PITMODE) ? "On" : "Off");
+        cliPrintf("Boot into Pitmode: %s\r\n", saDevice.willBootIntoPitMode ? "Yes" : "No");
+        cliPrintf("Frequency select mode: %s\r\n",
+                ((saDevice.mode & SA_MODE_GET_FREQ_BY_FREQ) && vtxSettingsConfigMutable()->band == 0) ?
+                        "Channel" :
+                        "User");
+
+        uint16_t freq;
+        uint8_t channel;
+        uint8_t band;
+        vtxCommonGetBandAndChannel(vtxDevice, &band, &channel);
+        vtxCommonGetFrequency(vtxDevice, &freq);
+        cliPrintf("Current frequency: %d MHz (Band %d, Channel %d)\r\n", freq, band, channel);
+
+        uint8_t powerIndex;
+        vtxCommonGetPowerIndex(vtxDevice, &powerIndex);
+        cliPrintf("Current power level: %d (%d mW, %d dBi)\r\n",
+                powerIndex,
+                saPowerTable[powerIndex - 1].mW,
+                saPowerTable[powerIndex - 1].dbi);
+
+        if (saDevice.version == SA_2_1) {
+            cliPrintf("Reported power levels: ");
+            for (uint8_t i = 0; i < saPowerCount; i++) {
+                cliPrintf("%d mW (%d dBi)", saPowerTable[i].mW, saPowerTable[i].dbi);
+                if (i + 1 < saPowerCount) {
+                    cliPrintf(", ");
+                } else {
+                    cliPrintf("\r\n");
+                }
+            }
+        }
+
+        if (saDevice.version > SA_1_0) {
+            cliPrintf("Pit frequency mode: %s\r\n", (saDevice.mode & SA_MODE_GET_OUT_RANGE_PITMODE) ?
+                    "Out range" :
+                    "In range");
+
+            cliPrintf("Pit out range frequency: %i\r\n", saDevice.orfreq);
+        }
+
+        cliPrintf("Unlocked: %s\r\n", (saDevice.mode & SA_MODE_GET_UNLOCK) ? "Yes": "No");
+
+        return;
+    }
+
+    if (strcasecmp(token, "debuginfo") == 0) {
+        cliPrintf("Baudrate: %d\r\n", sa_smartbaud);
+        cliPrintf("Packets send: %d\r\n", saStat.pktsent);
+        cliPrintf("Packets received: %d\r\n", saStat.pktrcvd);
+        cliPrintf("Bad preambles: %d\r\n", saStat.badpre);
+        cliPrintf("Bad length: %d\r\n", saStat.badlen);
+        cliPrintf("CRC errors: %d\r\n", saStat.crc);
+        cliPrintf("OOO errors: %d\r\n", saStat.ooopresp);
+
+    } else if (strcasecmp(token, "bootintopitmode") == 0) {
+        token = strtok_r(NULL, " ", &save_ptr);
+
+        if (strcasecmp(token, "true") == 0) {
+            saDevice.willBootIntoPitMode = true;
+
+            if (saDevice.mode & SA_MODE_GET_OUT_RANGE_PITMODE) {
+                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_OUT_RANGE_PITMODE)
+            } else {
+                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_IN_RANGE_PITMODE)
+            }
+
+        } else if (strcasecmp(token, "false") == 0) {
+            saDevice.willBootIntoPitMode = false;
+            saSetMode(SA_MODE_CLR_PITMODE);
+        } else {
+            cliShowParseError();
+            return;
+        }
+
+    }
+
+}
+
+//#endif
+
 #ifdef USE_SDCARD
 
 static void cliWriteBytes(const uint8_t *buffer, int count)
@@ -3448,6 +3574,9 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("gf", "configure global functions",
         "<rule> <enabled> <logic condition> <action> <operand type> <operand value> <flags>\r\n"
         "\treset\r\n", cliGlobalFunctions),
+#endif
+#ifdef USE_VTX_SMARTAUDIO
+    CLI_COMMAND_DEF("smartaudio", "smartaudio advanced configuration", "[powerlevels <count>|<bootintopitmde <true|false>|pitfmode <pir|por>|porfreq <freq>]", cliSmartaudio),
 #endif
     CLI_COMMAND_DEF("set", "change setting", "[<name>=<value>]", cliSet),
     CLI_COMMAND_DEF("smix", "servo mixer",
