@@ -2037,9 +2037,9 @@ static void cliSmartaudio(char *cmdline)
             saDevice.willBootIntoPitMode = true;
 
             if (saDevice.mode & SA_MODE_GET_OUT_RANGE_PITMODE) {
-                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_OUT_RANGE_PITMODE)
+                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_OUT_RANGE_PITMODE);
             } else {
-                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_IN_RANGE_PITMODE)
+                saSetMode(SA_MODE_CLR_PITMODE | SA_MODE_SET_IN_RANGE_PITMODE);
             }
 
         } else if (strcasecmp(token, "false") == 0) {
@@ -2050,8 +2050,44 @@ static void cliSmartaudio(char *cmdline)
             return;
         }
 
-    }
+    } else if (strcasecmp(token, "pitfmode") == 0) {
+        token = strtok_r(NULL, " ", &save_ptr);
 
+       if (saDevice.version == SA_1_0) {
+           cliPrintf("This device doesn't support pit mode.\r\n");
+           return;
+       }
+
+       if (strcasecmp(token, "pir") == 0) {
+           saSetMode(SA_MODE_SET_IN_RANGE_PITMODE);
+       } else if (strcasecmp(token, "por") == 0) {
+           saSetMode(SA_MODE_SET_OUT_RANGE_PITMODE);
+       } else {
+           cliShowParseError();
+           return;
+       }
+    } else if (strcasecmp(token, "porfreq") == 0) {
+        token = strtok_r(NULL, " ", &save_ptr);
+
+        int freq = fastA2I(token);
+
+        if (freq < 5000 || freq > 5900) {
+            cliShowArgumentRangeError("freq", 5000, 5900);
+            return;
+        }
+
+        saSetPitFreq(freq);
+    } else if (strcasecmp(token, "powerlevels") == 0) {
+        token = strtok_r(NULL, " ", &save_ptr);
+
+        int powerCount = fastA2I(token);
+
+        if (powerCount <= 0 || powerCount > VTX_SMARTAUDIO_MAX_POWER_COUNT) {
+            cliShowArgumentRangeError("count", 1, VTX_SMARTAUDIO_MAX_POWER_COUNT);
+        }
+
+
+    }
 }
 
 //#endif

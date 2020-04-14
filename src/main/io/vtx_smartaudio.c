@@ -75,7 +75,7 @@ static vtxDevice_t vtxSmartAudio = {
     .capability.powerCount = VTX_SMARTAUDIO_MAX_POWER_COUNT,
     .capability.bandNames = (char **)vtx58BandNames,
     .capability.channelNames = (char **)vtx58ChannelNames,
-    .capability.powerNames = (char**)saPowerNames
+    .capability.powerNames = (char **)saPowerNames
 };
 
 // SmartAudio command and response codes
@@ -129,7 +129,7 @@ saPowerTable_t saPowerTable[VTX_SMARTAUDIO_MAX_POWER_COUNT] = {
 // Last received device ('hard') states
 
 smartAudioDevice_t saDevice = {
-    .version = SA_UNKNOWN,
+    .version = 0,
     .channel = -1,
     .power = -1,
     .mode = 0,
@@ -604,6 +604,7 @@ static void saGetSettings(void)
     saQueueCmd(bufGetSettings, 5);
 }
 
+
 void saSetFreq(uint16_t freq)
 {
     static uint8_t buf[7] = { 0xAA, 0x55, SACMD(SA_CMD_SET_FREQ), 2 };
@@ -996,7 +997,7 @@ static const vtxVTable_t saVTable = {
     .getPitMode = vtxSAGetPitMode,
     .getFrequency = vtxSAGetFreq,
     .getPower = vtxSAGetPower,
-    .getOsdInfo = vtxSAGetOsdInfo,
+    .getOsdInfo = vtxSAGetOsdInfo
 };
 
 
