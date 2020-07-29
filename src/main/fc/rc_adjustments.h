@@ -78,7 +78,12 @@ typedef enum {
 #ifdef USE_INFLIGHT_PROFILE_ADJUSTMENT
     ADJUSTMENT_PROFILE                  = 50,
 #endif
-    ADJUSTMENT_FUNCTION_COUNT // must be last
+	ADJUSTMENT_ROLL_FF                   = 51,
+	ADJUSTMENT_YAW_FF                    = 52,
+	ADJUSTMENT_PITCH_FF                  = 53,
+	ADJUSTMENT_TPA                       = 54,
+	ADJUSTMENT_TPA_BREAKPOINT            = 55,
+	ADJUSTMENT_FUNCTION_COUNT // must be last
 } adjustmentFunction_e;
 
 typedef enum {
@@ -131,7 +136,7 @@ typedef struct adjustmentState_s {
 #define MAX_SIMULTANEOUS_ADJUSTMENT_COUNT 4 // enough for 4 x 3position switches / 4 aux channel
 #endif
 
-#define MAX_ADJUSTMENT_RANGE_COUNT 12 // enough for 2 * 6pos switches.
+#define MAX_ADJUSTMENT_RANGE_COUNT 20
 
 PG_DECLARE_ARRAY(adjustmentRange_t, MAX_ADJUSTMENT_RANGE_COUNT, adjustmentRanges);
 

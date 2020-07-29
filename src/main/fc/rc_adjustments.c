@@ -274,6 +274,26 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_SELECT,
         .data = { .selectConfig = { .switchPositions = 3 }}
 #endif
+    }, {
+            .adjustmentFunction = ADJUSTMENT_ROLL_FF,
+            .mode = ADJUSTMENT_MODE_STEP,
+            .data = { .stepConfig = { .step = 1 }}
+    }, {
+            .adjustmentFunction = ADJUSTMENT_YAW_FF,
+            .mode = ADJUSTMENT_MODE_STEP,
+            .data = { .stepConfig = { .step = 1 }}
+    }, {
+            .adjustmentFunction = ADJUSTMENT_PITCH_FF,
+            .mode = ADJUSTMENT_MODE_STEP,
+            .data = { .stepConfig = { .step = 1 }}
+    }, {
+            .adjustmentFunction = ADJUSTMENT_TPA,
+            .mode = ADJUSTMENT_MODE_STEP,
+            .data = { .stepConfig = { .step = 1 }}
+    }, {
+            .adjustmentFunction = ADJUSTMENT_TPA_BREAKPOINT,
+            .mode = ADJUSTMENT_MODE_STEP,
+            .data = { .stepConfig = { .step = 5 }}
     }
 };
 
@@ -556,6 +576,34 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
                 }
             }
             break;
+        case ADJUSTMENT_ROLL_FF:
+            {
+            	applyAdjustmentPID(ADJUSTMENT_ROLL_FF, &pidBankMutable()->pid[PID_ROLL].FF, delta);
+            	navigationUsePIDs();
+            }
+            break;
+        case ADJUSTMENT_YAW_FF:
+			{
+				applyAdjustmentPID(ADJUSTMENT_YAW_FF, &pidBankMutable()->pid[PID_YAW].FF, delta);
+				navigationUsePIDs();
+			}
+			break;
+        case ADJUSTMENT_PITCH_FF:
+			{
+				applyAdjustmentPID(ADJUSTMENT_PITCH_FF, &pidBankMutable()->pid[PID_PITCH].FF, delta);
+				navigationUsePIDs();
+			}
+			break;
+        case ADJUSTMENT_TPA:
+            {
+                applyAdjustmentU8(ADJUSTMENT_TPA, &controlRateConfig->throttle.dynPID, delta, 0, CONTROL_RATE_CONFIG_TPA_MAX);
+            }
+        	break;
+        case ADJUSTMENT_TPA_BREAKPOINT:
+			{
+				applyAdjustmentU16(ADJUSTMENT_TPA_BREAKPOINT, &controlRateConfig->throttle.pa_breakpoint, delta, PWM_RANGE_MIN, PWM_RANGE_MAX);
+			}
+			break;
         default:
             break;
     };
