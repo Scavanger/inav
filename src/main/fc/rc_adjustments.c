@@ -570,9 +570,9 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
             }
         	break;
         case ADJUSTMENT_TPA_BREAKPOINT:
-			{
+            {
                 applyAdjustmentU16(ADJUSTMENT_TPA_BREAKPOINT, &controlRateConfig->throttle.pa_breakpoint, delta, PWM_RANGE_MIN, PWM_RANGE_MAX);
-			}
+            }
 			break;
         default:
             break;
