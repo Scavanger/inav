@@ -36,16 +36,16 @@ typedef enum {
     ADJUSTMENT_PITCH_ROLL_D             = 8,
     ADJUSTMENT_YAW_P                    = 9,
     ADJUSTMENT_YAW_I                    = 10,
-    ADJUSTMENT_YAW_D                    = 11,
+    ADJUSTMENT_YAW_D_FF                 = 11,
     ADJUSTMENT_RATE_PROFILE             = 12,    // Unused, placeholder for compatibility
     ADJUSTMENT_PITCH_RATE               = 13,
     ADJUSTMENT_ROLL_RATE                = 14,
     ADJUSTMENT_PITCH_P                  = 15,
     ADJUSTMENT_PITCH_I                  = 16,
-    ADJUSTMENT_PITCH_D                  = 17,
+    ADJUSTMENT_PITCH_D_FF               = 17,
     ADJUSTMENT_ROLL_P                   = 18,
     ADJUSTMENT_ROLL_I                   = 19,
-    ADJUSTMENT_ROLL_D                   = 20,
+    ADJUSTMENT_ROLL_D_FF                = 20,
     ADJUSTMENT_RC_YAW_EXPO              = 21,
     ADJUSTMENT_MANUAL_RC_EXPO           = 22,
     ADJUSTMENT_MANUAL_RC_YAW_EXPO       = 23,
@@ -78,11 +78,8 @@ typedef enum {
 #ifdef USE_INFLIGHT_PROFILE_ADJUSTMENT
     ADJUSTMENT_PROFILE                  = 50,
 #endif
-	ADJUSTMENT_ROLL_FF                   = 51,
-	ADJUSTMENT_YAW_FF                    = 52,
-	ADJUSTMENT_PITCH_FF                  = 53,
-	ADJUSTMENT_TPA                       = 54,
-	ADJUSTMENT_TPA_BREAKPOINT            = 55,
+	ADJUSTMENT_TPA                       = 51,
+	ADJUSTMENT_TPA_BREAKPOINT            = 52,
 	ADJUSTMENT_FUNCTION_COUNT // must be last
 } adjustmentFunction_e;
 

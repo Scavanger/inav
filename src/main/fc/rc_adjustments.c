@@ -113,7 +113,7 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
-        .adjustmentFunction = ADJUSTMENT_YAW_D,
+        .adjustmentFunction = ADJUSTMENT_YAW_D_FF,
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
@@ -137,7 +137,7 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
-        .adjustmentFunction = ADJUSTMENT_PITCH_D,
+        .adjustmentFunction = ADJUSTMENT_PITCH_D_FF,
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
@@ -149,7 +149,7 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
-        .adjustmentFunction = ADJUSTMENT_ROLL_D,
+        .adjustmentFunction = ADJUSTMENT_ROLL_D_FF,
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .stepConfig = { .step = 1 }}
     }, {
@@ -274,18 +274,6 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_SELECT,
         .data = { .selectConfig = { .switchPositions = 3 }}
 #endif
-    }, {
-            .adjustmentFunction = ADJUSTMENT_ROLL_FF,
-            .mode = ADJUSTMENT_MODE_STEP,
-            .data = { .stepConfig = { .step = 1 }}
-    }, {
-            .adjustmentFunction = ADJUSTMENT_YAW_FF,
-            .mode = ADJUSTMENT_MODE_STEP,
-            .data = { .stepConfig = { .step = 1 }}
-    }, {
-            .adjustmentFunction = ADJUSTMENT_PITCH_FF,
-            .mode = ADJUSTMENT_MODE_STEP,
-            .data = { .stepConfig = { .step = 1 }}
     }, {
             .adjustmentFunction = ADJUSTMENT_TPA,
             .mode = ADJUSTMENT_MODE_STEP,
@@ -462,17 +450,17 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
             schedulePidGainsUpdate();
             break;
         case ADJUSTMENT_PITCH_ROLL_D:
-        case ADJUSTMENT_PITCH_D:
-            applyAdjustmentPID(ADJUSTMENT_PITCH_D, &pidBankMutable()->pid[PID_PITCH].D, delta);
-            if (adjustmentFunction == ADJUSTMENT_PITCH_D) {
+        case ADJUSTMENT_PITCH_D_FF:
+            applyAdjustmentPID(ADJUSTMENT_PITCH_D_FF, get3rdPIDValueByType(pidBankMutable(), PID_PITCH), delta);
+            if (adjustmentFunction == ADJUSTMENT_PITCH_D_FF) {
                 schedulePidGainsUpdate();
                 break;
             }
             // follow though for combined ADJUSTMENT_PITCH_ROLL_D
             FALLTHROUGH;
 
-        case ADJUSTMENT_ROLL_D:
-            applyAdjustmentPID(ADJUSTMENT_ROLL_D, &pidBankMutable()->pid[PID_ROLL].D, delta);
+        case ADJUSTMENT_ROLL_D_FF:
+            applyAdjustmentPID(ADJUSTMENT_ROLL_D_FF, get3rdPIDValueByType(pidBankMutable(), PID_ROLL), delta);
             schedulePidGainsUpdate();
             break;
         case ADJUSTMENT_YAW_P:
@@ -483,8 +471,8 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
             applyAdjustmentPID(ADJUSTMENT_YAW_I, &pidBankMutable()->pid[PID_YAW].I, delta);
             schedulePidGainsUpdate();
             break;
-        case ADJUSTMENT_YAW_D:
-            applyAdjustmentPID(ADJUSTMENT_YAW_D, &pidBankMutable()->pid[PID_YAW].D, delta);
+        case ADJUSTMENT_YAW_D_FF:
+            applyAdjustmentPID(ADJUSTMENT_YAW_D_FF, get3rdPIDValueByType(pidBankMutable(), PID_YAW), delta);
             schedulePidGainsUpdate();
             break;
         case ADJUSTMENT_NAV_FW_CRUISE_THR:
@@ -576,24 +564,6 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
                 }
             }
             break;
-        case ADJUSTMENT_ROLL_FF:
-            {
-            	applyAdjustmentPID(ADJUSTMENT_ROLL_FF, &pidBankMutable()->pid[PID_ROLL].FF, delta);
-            	navigationUsePIDs();
-            }
-            break;
-        case ADJUSTMENT_YAW_FF:
-			{
-				applyAdjustmentPID(ADJUSTMENT_YAW_FF, &pidBankMutable()->pid[PID_YAW].FF, delta);
-				navigationUsePIDs();
-			}
-			break;
-        case ADJUSTMENT_PITCH_FF:
-			{
-				applyAdjustmentPID(ADJUSTMENT_PITCH_FF, &pidBankMutable()->pid[PID_PITCH].FF, delta);
-				navigationUsePIDs();
-			}
-			break;
         case ADJUSTMENT_TPA:
             {
                 applyAdjustmentU8(ADJUSTMENT_TPA, &controlRateConfig->throttle.dynPID, delta, 0, CONTROL_RATE_CONFIG_TPA_MAX);
@@ -601,7 +571,7 @@ static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t 
         	break;
         case ADJUSTMENT_TPA_BREAKPOINT:
 			{
-				applyAdjustmentU16(ADJUSTMENT_TPA_BREAKPOINT, &controlRateConfig->throttle.pa_breakpoint, delta, PWM_RANGE_MIN, PWM_RANGE_MAX);
+                applyAdjustmentU16(ADJUSTMENT_TPA_BREAKPOINT, &controlRateConfig->throttle.pa_breakpoint, delta, PWM_RANGE_MIN, PWM_RANGE_MAX);
 			}
 			break;
         default:
