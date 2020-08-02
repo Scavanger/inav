@@ -1117,7 +1117,7 @@ pidBank_t * pidBankMutable(void) {
     return usedPidControllerType == PID_TYPE_PIFF ? &pidProfileMutable()->bank_fw : &pidProfileMutable()->bank_mc;
 }
 
-uint8_t * get3rdPIDValueByType(pidBank_t *pidBank, pidIndex_e pidIndex)
+uint8_t * getD_FFRefByBank(pidBank_t *pidBank, pidIndex_e pidIndex)
 {
     if (pidIndexGetType(pidIndex) == PID_TYPE_PIFF) {
        return &pidBank->pid[pidIndex].FF;
