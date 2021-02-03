@@ -62,6 +62,8 @@
 | disarm_kill_switch | ON | Disarms the motors independently of throttle value. Setting to OFF reverts to the old behaviour of disarming only when the throttle is low. Only applies when arming and disarming with an AUX channel. |
 | display_force_sw_blink | OFF | OFF = OSD hardware blink / ON = OSD software blink. If OSD warning text/values are invisible, try setting this to ON |
 | dji_esc_temp_source | ESC | Re-purpose the ESC temperature field for IMU/BARO temperature |
+| dji_gps_speed_source | GPS | Re-purpose the GPS speed field for GPS/3D/Air speed |
+| dji_message_speed_source | 3D | Source of the messages speed field |
 | dji_use_name_for_messages | ON | Re-purpose the craft name field for messages. Replace craft name with :WTSED for Warnings|Throttle|Speed|Efficiency|Trip distance |
 | dji_workarounds |  | Enables workarounds for different versions of MSP protocol used |
 | dterm_lpf2_hz | 0 | Cutoff frequency for stage 2 D-term low pass filter |
