@@ -86,7 +86,7 @@
 #include "rx/rx.h"
 #include "fc/rc_controls.h"
 
-//#if defined(USE_DJI_HD_OSD)
+#if defined(USE_DJI_HD_OSD)
 
 #define DJI_MSP_BAUDRATE                    115200
 
@@ -1475,4 +1475,4 @@ void djiOsdSerialProcess(void)
     mspSerialProcessOnePort(&djiMspPort, MSP_SKIP_NON_MSP_DATA, djiProcessMspCommand);
 }
 
-//#endif
+#endif
