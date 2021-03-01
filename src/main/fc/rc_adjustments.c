@@ -360,9 +360,9 @@ static void applyAdjustmentManualRate(adjustmentFunction_e adjustmentFunction, u
     return applyAdjustmentU8(adjustmentFunction, val, delta, RC_ADJUSTMENT_MANUAL_RATE_MIN, RC_ADJUSTMENT_MANUAL_RATE_MAX);
 }
 
-static void applyAdjustmentPID(adjustmentFunction_e adjustmentFunction, uint8_t *val, int delta)
+static void applyAdjustmentPID(adjustmentFunction_e adjustmentFunction, uint16_t *val, int delta)
 {
-    applyAdjustmentU8(adjustmentFunction, val, delta, RC_ADJUSTMENT_PID_MIN, RC_ADJUSTMENT_PID_MAX);
+    applyAdjustmentU16(adjustmentFunction, val, delta, RC_ADJUSTMENT_PID_MIN, RC_ADJUSTMENT_PID_MAX);
 }
 
 static void applyStepAdjustment(controlRateConfig_t *controlRateConfig, uint8_t adjustmentFunction, int delta)
@@ -695,4 +695,15 @@ bool isAdjustmentFunctionSelected(uint8_t adjustmentFunction) {
         }
     }
     return false;
+}
+
+uint8_t getActiveAdjustmentFunctions(uint8_t *adjustmentFunctions) {
+    uint8_t adjustmentCount = 0;
+    for (uint8_t i = 0; i < MAX_SIMULTANEOUS_ADJUSTMENT_COUNT; i++) {
+        if (adjustmentStates[i].config) {
+            adjustmentCount++;
+            adjustmentFunctions[i] = adjustmentStates[i].config->adjustmentFunction;
+        }
+    }
+    return adjustmentCount;
 }
