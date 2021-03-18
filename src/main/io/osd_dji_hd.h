@@ -72,10 +72,36 @@ enum djiOsdProtoWorkarounds_e {
     DJI_OSD_USE_NON_STANDARD_MSP_ESC_SENSOR_DATA    = 1 << 0,
 };
 
+typedef enum {
+    DJI_OSD_GPS_SPEED   = 0,
+    DJI_OSD_3D_SPEED    = 1,
+    DJI_OSD_AIR_SPEED   = 2,
+} djiOsdSpeedSouce_t;
+
+enum djiRssiSource_e {
+    DJI_RSSI = 0,
+    DJI_CRSF_LQ = 1
+};
+
+typedef enum {
+    DJI_OSD_CN_MESSAGES,
+    DJI_OSD_CN_THROTTLE,
+    DJI_OSD_CN_THROTTLE_AUTO_THR,
+    DJI_OSD_CN_AIR_SPEED,
+    DJI_OSD_CN_EFFICIENCY,
+    DJI_OSD_CN_DISTANCE,
+    DJI_OSD_CN_ADJSTEMNTS,
+    DJI_OSD_CN_MAX_ELEMENTS
+} DjiCraftNameElements_t;
+
 typedef struct djiOsdConfig_s {
     uint8_t use_name_for_messages;
     uint8_t esc_temperature_source;
     uint8_t proto_workarounds;
+    uint8_t gps_speed_source;
+    uint8_t messages_speed_source;
+    uint8_t rssi_source;
+    uint8_t useAdjustments;
 } djiOsdConfig_t;
 
 PG_DECLARE(djiOsdConfig_t, djiOsdConfig);

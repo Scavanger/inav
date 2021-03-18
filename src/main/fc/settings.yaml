@@ -155,6 +155,12 @@ tables:
   - name: nav_overrides_motor_stop
     enum: navOverridesMotorStop_e
     values: ["OFF_ALWAYS", "OFF", "AUTO_ONLY", "ALL_NAV"]
+  - name: djiOsdSpeedSource
+    values: ["GPS", "3D", "AIR"]
+    enum: djiOsdSpeedSouce_e
+  - name: djiRssiSource
+    values: ["RSSI", "CRSF_LQ"]
+    enum: djiRssiSource_e     
 
 groups:
   - name: PG_GYRO_CONFIG
@@ -3197,3 +3203,27 @@ groups:
           field: esc_temperature_source
           table: djiOsdTempSource
           type: uint8_t
+        - name: dji_gps_speed_source
+          description: "Re-purpose the GPS speed field for GPS/3D/Air speed"
+          default_value: "GPS"
+          field: gps_speed_source
+          table: djiOsdSpeedSource
+          type: uint8_t
+        - name: dji_message_speed_source
+          description: "Source of the messages speed field"
+          default_value: "AIR"
+          field: messages_speed_source
+          table: djiOsdSpeedSource
+          type: uint8_t
+        - name: dji_rssi_source
+          description: "Source of the RSSI value"
+          default_value: "RSSI"
+          field: rssi_source
+          table: djiRssiSource
+          type: uint8_t
+        - name: dji_use_adjustments
+          description: "Show inflight adjusments in craft name field"
+          default_value: "OFF"
+          type: bool
+          field: useAdjustments
+          
