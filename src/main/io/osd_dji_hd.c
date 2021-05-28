@@ -961,7 +961,7 @@ static bool osdDJIFormatAdjustments(char *buff)
     uint8_t adjustmentFunctions[MAX_SIMULTANEOUS_ADJUSTMENT_COUNT];
     uint8_t adjustmentCount = getActiveAdjustmentFunctions(adjustmentFunctions);
 
-    if (buff != NULL) {
+    if (adjustmentCount > 0 && buff != NULL) {
         osdDJIAdjustmentMessage(buff, adjustmentFunctions[OSD_ALTERNATING_CHOICES(DJI_ALTERNATING_DURATION_LONG, adjustmentCount)]);
     }
     
@@ -1023,6 +1023,10 @@ static bool djiFormatMessages(char *buff)
                 if (FLIGHT_MODE(HEADFREE_MODE)) {
                     messages[messageCount++] = "(HEADFREE)";
                 }
+
+                if (FLIGHT_MODE(MANUAL_MODE)) {
+                    messages[messageCount++] = "(MANUAL)";
+                }
             }
         }
         // Pick one of the available messages. Each message lasts
@@ -1068,7 +1072,7 @@ static void djiSerializeCraftNameOverride(sbuf_t *dst)
     if (!(OSD_VISIBLE(osdLayoutConfig[OSD_MESSAGES]) && djiFormatMessages(djibuf))
         && !(djiOsdConfig()->useAdjustments && osdDJIFormatAdjustments(djibuf))) {
 
-        char activeElements[DJI_OSD_CN_MAX_ELEMENTS];
+        DjiCraftNameElements_t activeElements[DJI_OSD_CN_MAX_ELEMENTS];
         uint8_t activeElementsCount = 0;
 
         if (OSD_VISIBLE(osdLayoutConfig[OSD_THROTTLE_POS])) {
