@@ -83,6 +83,7 @@
 #include "msc/emfat_file.h"
 #endif
 #include "drivers/sdcard/sdcard.h"
+#include "drivers/sdio.h"
 #include "drivers/io_port_expander.h"
 
 #include "fc/cli.h"
@@ -372,6 +373,11 @@ void init(void)
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
     updateHardwareRevision();
+#endif
+
+#if defined(USE_SDCARD_SDIO) && defined(STM32H7)
+    sdioPinConfigure();
+    SDIO_GPIO_Init();
 #endif
 
 #ifdef USE_USB_MSC
