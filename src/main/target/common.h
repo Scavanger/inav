@@ -29,12 +29,6 @@
 #define NOINLINE
 #endif
 
-#if defined(STM32F3)
-#define DYNAMIC_HEAP_SIZE   1024
-#else
-#define DYNAMIC_HEAP_SIZE   2048
-#endif
-
 #define I2C1_OVERCLOCK false
 #define I2C2_OVERCLOCK false
 #define USE_I2C_PULLUP          // Enable built-in pullups on all boards in case external ones are too week

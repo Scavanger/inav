@@ -220,7 +220,7 @@ void busDeviceWriteScratchpad(busDevice_t * dev, uint32_t value)
 void * busDeviceGetScratchpadMemory(const busDevice_t * dev)
 {
     if (dev->scratchpad == NULL) {
-        ((busDevice_t *)dev)->scratchpad = memAllocate(BUS_SCRATCHPAD_MEMORY_SIZE, OWNER_SYSTEM);
+        ((busDevice_t *)dev)->scratchpad = memAllocate(BUS_SCRATCHPAD_MEMORY_SIZE);
     }
 
     return (void *)dev->scratchpad;

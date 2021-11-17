@@ -26,10 +26,24 @@
 
 FILE_COMPILE_FOR_SIZE
 
+#include "config/feature.h"
+#include "fc/config.h"
+#include "drivers/io_port_expander.h"
 #include "programming/logic_condition.h"
 #include "programming/pid.h"
+#include "programming/user_script.h"
+#include "programming/programming_overrides.h"
 
 void programmingFrameworkUpdateTask(timeUs_t currentTimeUs) {
+    programmingOverridesReset();
     programmingPidUpdateTask(currentTimeUs);
     logicConditionUpdateTask(currentTimeUs);
+#if defined(USE_USER_SCRIPT)
+    if (feature(FEATURE_USER_SCRIPT)) {
+        userScriptUpdateTask(currentTimeUs);
+    }
+#endif
+#ifdef USE_I2C_IO_EXPANDER
+    ioPortExpanderSync();
+#endif
 }

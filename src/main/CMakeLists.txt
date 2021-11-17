@@ -12,6 +12,13 @@ main_sources(COMMON_SRC
     build/version.c
     build/version.h
 
+    common/umm_malloc/umm_info.c
+    common/umm_malloc/umm_integrity.c
+    common/umm_malloc/umm_poison.c
+    common/umm_malloc/umm_malloc.c
+    common/umm_malloc/umm_malloc_cfg.h
+    common/umm_malloc/umm_malloc_cfgport.h
+    common/umm_malloc/umm_malloc.h
     common/bitarray.c
     common/bitarray.h
     common/calibration.c
@@ -390,9 +397,16 @@ main_sources(COMMON_SRC
     programming/global_variables.h
     programming/programming_task.c
     programming/programming_task.h
+    programming/programming_overrides.c
+    programming/programming_overrides.h
     programming/pid.c
     programming/pid.h
-
+    programming/user_script.c
+    programming/user_script.h
+    programming/lua_script.c
+    programming/lua_script.h
+    programming/luaInavLib.c
+    
     rx/crsf.c
     rx/crsf.h
     rx/eleres.c

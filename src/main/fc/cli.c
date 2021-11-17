@@ -42,8 +42,11 @@ bool cliMode = false;
 #include "common/time.h"
 #include "common/typeconversion.h"
 #include "common/fp_pid.h"
+#include "common/umm_malloc/umm_malloc.h"
+#include "common/umm_malloc/umm_malloc_cfg.h"
 #include "programming/global_variables.h"
 #include "programming/pid.h"
+#include "programming/user_script.h"
 
 #include "config/config_eeprom.h"
 #include "config/feature.h"
@@ -153,7 +156,7 @@ static bool commandBatchError = false;
 // sync this with features_e
 static const char * const featureNames[] = {
     "THR_VBAT_COMP", "VBAT", "TX_PROF_SEL", "BAT_PROF_AUTOSWITCH", "MOTOR_STOP",
-    "", "SOFTSERIAL", "GPS", "RPM_FILTERS",
+    "USER_SCRIPT", "SOFTSERIAL", "GPS", "RPM_FILTERS",
     "", "TELEMETRY", "CURRENT_METER", "REVERSIBLE_MOTORS", "",
     "", "RSSI_ADC", "LED_STRIP", "DASHBOARD", "",
     "BLACKBOX", "", "TRANSPONDER", "AIRMODE",
@@ -1344,8 +1347,32 @@ static void cliSafeHomes(char *cmdline)
         }
     }
 }
+#endif
+
+#if defined(USE_USER_SCRIPT)
+
+void userScriptCliWriteLine(const char *str)
+{
+    cliPrint(str);
+}
+
+static void userScriptDbgCli(char *cmdline)
+{
+    UNUSED(cmdline);
+
+    cliPrintLine("--- User script debug ---");
+    cliPrintLinef("Status: %s", userScriptisRunning() ? "Runnning" : "Error"); 
+
+    cliPrintLine("Error messages:");
+    userScriptGetAllErrors(userScriptCliWriteLine);
+    cliPrintLinefeed();
+
+    cliPrintLine("Output:");
+    userScriptDebug(userScriptCliWriteLine);
+}
 
 #endif
+
 #if defined(USE_NAV) && defined(NAV_NON_VOLATILE_WAYPOINT_STORAGE) && defined(NAV_NON_VOLATILE_WAYPOINT_CLI)
 static void printWaypoints(uint8_t dumpMask, const navWaypoint_t *navWaypoint, const navWaypoint_t *defaultNavWaypoint)
 {
@@ -1387,6 +1414,8 @@ static void printWaypoints(uint8_t dumpMask, const navWaypoint_t *navWaypoint, c
         );
     }
 }
+
+
 
 static void cliWaypoints(char *cmdline)
 {
@@ -2495,6 +2524,12 @@ static void cliFeature(char *cmdline)
                     break;
                 }
 #endif
+#ifndef USE_USER_SCRIPT
+                if (mask & FEATURE_USER_SCRIPT) {
+                    cliPrintErrorLine("unavailable");
+                    break;
+                }
+#endif
                 if (remove) {
                     featureClear(mask);
                     cliPrint("Disabled");
@@ -3448,15 +3483,12 @@ static void cliVersion(char *cmdline)
 static void cliMemory(char *cmdline)
 {
     UNUSED(cmdline);
-    cliPrintLinef("Dynamic memory usage:");
-    for (unsigned i = 0; i < OWNER_TOTAL_COUNT; i++) {
-        const char * owner = ownerNames[i];
-        const uint32_t memUsed = memGetUsedBytesByOwner(i);
-
-        if (memUsed) {
-            cliPrintLinef("%s : %d bytes", owner, memUsed);
-        }
-    }
+    cliPrintLinef("--- Dynamic memory info ---");
+    cliPrintLinef("Heap size: %d", DYNAMIC_HEAP_SIZE * 1024);
+    cliPrintLinef("Free heap size: %d", umm_free_heap_size());
+    cliPrintLinef("Free block size: %d", umm_max_free_block_size());
+    cliPrintLinef("Usage metric: %d", umm_usage_metric());
+    cliPrintLinef("Fragmentaion metric: %d", umm_fragmentation_metric());
 }
 
 #if !defined(SKIP_TASK_STATISTICS) && !defined(SKIP_CLI_RESOURCES)
@@ -3873,6 +3905,10 @@ const clicmd_t cmdTable[] = {
 #endif
 #ifdef USE_TEMPERATURE_SENSOR
     CLI_COMMAND_DEF("temp_sensor", "change temp sensor settings", NULL, cliTempSensor),
+#endif
+#if defined(USE_SDCARD) && defined(USE_USER_SCRIPT)
+    CLI_COMMAND_DEF("sd_info", "sdcard info", NULL, cliSdInfo),
+    CLI_COMMAND_DEF("user_script_dbg", "User script debug", NULL, userScriptDbgCli),
 #endif
     CLI_COMMAND_DEF("version", "show version", NULL, cliVersion),
 #if defined(USE_NAV) && defined(NAV_NON_VOLATILE_WAYPOINT_STORAGE) && defined(NAV_NON_VOLATILE_WAYPOINT_CLI)

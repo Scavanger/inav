@@ -86,7 +86,7 @@ TCH_t * timerGetTCH(const timerHardware_t * timHw)
 
     // If timer context does not exist - allocate memory
     if (timerCtx[timerIndex] == NULL) {
-        timerCtx[timerIndex] = memAllocate(sizeof(timHardwareContext_t), OWNER_TIMER);
+        timerCtx[timerIndex] = memAllocate(sizeof(timHardwareContext_t));
         
         // Check for OOM
         if (timerCtx[timerIndex] == NULL) {

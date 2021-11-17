@@ -60,6 +60,21 @@ extern uint8_t __config_end;
 #undef USE_SERIALRX_JETIEXBUS
 #endif
 
+#if (MCU_FLASH_SIZE > 512) && (MCU_RAM_SIZE >= 192) && defined(USE_SDCARD)
+    #define USE_USER_SCRIPT
+    #if (MCU_RAM_SIZE == 192)
+        #define DYNAMIC_HEAP_SIZE 60
+    #elif (MCU_RAM_SIZE == 256)
+        #define DYNAMIC_HEAP_SIZE 128
+    #elif (MCU_RAM_SIZE >= 320)
+        #define DYNAMIC_HEAP_SIZE 256
+    #elif defined(STM32F3)
+       #define DYNAMIC_HEAP_SIZE 1
+    else 
+        #define DYNAMIC_HEAP_SIZE 2
+    #endif
+#endif
+
 #ifndef BEEPER_PWM_FREQUENCY
 #define BEEPER_PWM_FREQUENCY    2500
 #endif

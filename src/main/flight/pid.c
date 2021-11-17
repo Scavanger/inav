@@ -65,7 +65,7 @@ FILE_COMPILE_FOR_SPEED
 
 #include "scheduler/scheduler.h"
 
-#include "programming/logic_condition.h"
+#include "programming/programming_overrides.h"
 
 typedef struct {
     uint8_t axis;

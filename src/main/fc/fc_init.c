@@ -36,6 +36,7 @@
 #include "common/memory.h"
 #include "common/printf.h"
 #include "programming/global_variables.h"
+#include "programming/user_script.h"
 
 #include "config/config_eeprom.h"
 #include "config/feature.h"
@@ -208,6 +209,8 @@ void init(void)
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
 
+    memInit();  
+
 #ifdef USE_HARDWARE_REVISION_DETECTION
     detectHardwareRevision();
 #endif
@@ -300,6 +303,10 @@ void init(void)
 
 #ifdef USE_PROGRAMMING_FRAMEWORK
     gvInit();
+#endif
+
+#if defined(USE_USER_SCRIPT)
+    userScriptInit();
 #endif
 
     // Initialize servo and motor mixers

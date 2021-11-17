@@ -63,6 +63,71 @@ main_sources(STM32_MSC_SDCARD_SRC
     msc/usbd_storage_sd_spi.c
 )
 
+main_sources(STM32_LUA_SRC
+    programming/lua/lapi.c
+    programming/lua/lapi.h
+    programming/lua/lauxlib.c
+    programming/lua/lauxlib.h
+    programming/lua/lbaselib.c
+    programming/lua/lcode.c
+    programming/lua/lcode.h
+    #programming/lua/lcorolib.c
+    programming/lua/lctype.c
+    programming/lua/lctype.h
+    programming/lua/ldblib.c
+    programming/lua/ldebug.c
+    programming/lua/ldebug.h
+    programming/lua/ldo.c
+    programming/lua/ldo.h
+    programming/lua/ldump.c
+    programming/lua/lfunc.c
+    programming/lua/lfunc.h
+    programming/lua/lgc.c
+    programming/lua/lgc.h
+    programming/lua/linit.c
+    #programming/lua/liolib.c
+    programming/lua/ljumptab.h
+    programming/lua/llex.c
+    programming/lua/llex.h
+    programming/lua/llimits.h
+    programming/lua/lmathlib.c
+    programming/lua/lmem.c
+    programming/lua/lmem.h
+    #programming/lua/loadlib.c
+    programming/lua/lobject.c
+    programming/lua/lobject.h
+    programming/lua/lopcodes.c
+    programming/lua/lopcodes.h
+    programming/lua/lopnames.h
+    #programming/lua/loslib.c
+    programming/lua/lparser.c
+    programming/lua/lparser.h
+    programming/lua/lprefix.h
+    programming/lua/lstate.c
+    programming/lua/lstate.h
+    programming/lua/lstring.c
+    programming/lua/lstring.h
+    programming/lua/lstrlib.c
+    programming/lua/ltable.c
+    programming/lua/ltable.h
+    programming/lua/ltablib.c
+    programming/lua/ltm.c
+    programming/lua/ltm.h
+    programming/lua/lua.h
+    programming/lua/lua.hpp
+    programming/lua/luaconf.h
+    programming/lua/lualib.h
+    programming/lua/lundump.c
+    programming/lua/lundump.h
+    #programming/lua/lutf8lib.c
+    programming/lua/lvm.c
+    programming/lua/lvm.h
+    programming/lua/lzio.c
+    programming/lua/lzio.h
+    programming/lua/printf.c
+    programming/lua/printf.h
+)
+
 set(STM32_INCLUDE_DIRS
     "${CMSIS_INCLUDE_DIR}"
     "${CMSIS_DSP_INCLUDE_DIR}"
@@ -327,6 +392,20 @@ function(target_stm32)
         endif()
         if (SDCARD IN_LIST features)
             list(APPEND msc_sources ${STM32_MSC_SDCARD_SRC})
+        endif()
+    endif()
+   
+    if(NOT STM32F3 IN_LIST args_COMPILE_DEFINITIONS AND SDCARD IN_LIST features)
+        foreach(definition ${args_COMPILE_DEFINITIONS})    
+            if(${definition} MATCHES "^MCU_RAM_SIZE=([0-9]+)")
+                set(ram_size ${CMAKE_MATCH_1})    
+            endif()
+            if(${definition} MATCHES "^MCU_FLASH_SIZE=([0-9]+)")
+                set(flash_size ${CMAKE_MATCH_1})    
+            endif()
+        endforeach()
+        if(flash_size GREATER 512 AND ram_size GREATER_EQUAL 192)
+            list(APPEND target_sources ${STM32_LUA_SRC})
         endif()
     endif()
 

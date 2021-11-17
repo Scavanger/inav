@@ -107,11 +107,31 @@ function(target_stm32f7xx)
     )
 endfunction()
 
+function(get_f7_ram_size out subfamily)
+    if(${subfamily} STREQUAL "22")
+        set(${out} 256 PARENT_SCOPE)
+        return()
+    endif()
+    if(${subfamily} STREQUAL "45")
+        set(${out} 320 PARENT_SCOPE)
+        return()
+    endif()
+    if(${subfamily} STREQUAL "46")
+        set(${out} 320 PARENT_SCOPE)
+        return()
+    endif()
+    if(${subfamily} STREQUAL "65")
+        set(${out} 512 PARENT_SCOPE)
+        return()
+    endif()
+endfunction()
+
 macro(define_target_stm32f7 subfamily size)
     function(target_stm32f7${subfamily}x${size} name)
         set(func_ARGV ARGV)
         string(TOUPPER ${size} upper_size)
         get_stm32_flash_size(flash_size ${size})
+        get_f7_ram_size(ram_size ${subfamily})
         if(flash_size GREATER 512)
             set(opt -O2)
         else()
@@ -122,6 +142,7 @@ macro(define_target_stm32f7 subfamily size)
             STM32F7${subfamily}xx
             STM32F7${subfamily}x${upper_size}
             MCU_FLASH_SIZE=${flash_size}
+            MCU_RAM_SIZE=${ram_size}
         )
         target_stm32f7xx(
             NAME ${name}

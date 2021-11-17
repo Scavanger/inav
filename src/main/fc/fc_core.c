@@ -95,6 +95,7 @@ FILE_COMPILE_FOR_SPEED
 
 #include "config/feature.h"
 #include "common/vector.h"
+#include "programming/programming_overrides.h"
 #include "programming/pid.h"
 
 // June 2013     V2.2-dev
@@ -537,7 +538,7 @@ void tryArm(void)
     if (
         !isArmingDisabled() ||
         emergencyArmingIsEnabled() ||
-        LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_ARMING_SAFETY)
+        PROGRAMMING_GLOBAL_FLAG(PROGRAMMING_GLOBAL_FLAG_OVERRIDE_ARMING_SAFETY)
     ) {
 #else
     if (

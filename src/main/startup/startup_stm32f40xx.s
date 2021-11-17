@@ -74,7 +74,7 @@ defined in linker script */
 Reset_Handler: 
   // Enable CCM
   // RCC->AHB1ENR |= RCC_AHB1ENR_CCMDATARAMEN;
-  ldr     r0, =0x40023800       // RCC_BASE
+   ldr     r0, =0x40023800       // RCC_BASE
   ldr     r1, [r0, #0x30]       // AHB1ENR
   orr     r1, r1, 0x00100000    // RCC_AHB1ENR_CCMDATARAMEN
   str     r1, [r0, #0x30]

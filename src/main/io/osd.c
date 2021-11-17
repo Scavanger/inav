@@ -107,7 +107,7 @@ FILE_COMPILE_FOR_SPEED
 #include "sensors/esc_sensor.h"
 #include "sensors/rangefinder.h"
 
-#include "programming/logic_condition.h"
+#include "programming/programming_overrides.h"
 #include "programming/global_variables.h"
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
@@ -3997,8 +3997,8 @@ void osdUpdate(timeUs_t currentTimeUs)
             activeLayout = 1;
         else
 #ifdef USE_PROGRAMMING_FRAMEWORK
-        if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_OSD_LAYOUT))
-            activeLayout = constrain(logicConditionValuesByType[LOGIC_CONDITION_SET_OSD_LAYOUT], 0, OSD_ALTERNATE_LAYOUT_COUNT);
+        if (PROGRAMMING_GLOBAL_FLAG(PROGRAMMING_GLOBAL_FLAG_OVERRIDE_OSD_LAYOUT))
+            activeLayout = constrain(programmingValues[PROGRAMMING_VALUE_OSD_LAYLOUT], 0, OSD_ALTERNATE_LAYOUT_COUNT);
         else
 #endif
             activeLayout = 0;

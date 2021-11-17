@@ -1,0 +1,73 @@
+> local iter = ldoc.modules.iter
+# $(ldoc.title)
+
+$(ldoc.description)
+
+> for kind,items in module.kinds() do
+- [$(kind)](#$(kind:lower()))
+  
+Name | Summary 
+--- | --- 
+> for item in items() do
+> local anchor = ldoc.display_name(item):lower():gsub("[,%(%)]", ''):gsub(' ', '-')
+  [$(item.name)](#$(anchor)) | $(item.summary)
+> end
+> end
+
+> local show_return = not ldoc.no_return_or_parms
+> local show_parms = show_return
+
+> for kind,items in module.kinds() do
+
+## $(kind)
+> for item in items() do
+
+### $(ldoc.display_name(item))
+$(ldoc.descript(item))
+>   if show_parms and item.params and #item.params > 0 then
+>       local subnames = module.kinds:type_of(item).subnames
+>       if subnames then
+ 
+**$(subnames)**
+>       end
+>       for parm in iter(item.params) do
+>           local param,sublist = item:subparam(parm)
+>           for p in iter(param) do
+>               local name,tp,def = item:display_name_of(p),item:type_of_param(p), item:default_of_param(p)
+>               local paramStr = name .. ": "
+>               if tp ~= '' then
+>                   paramStr = paramStr .. "(*" .. tp .. "*)"
+>               end
+>                   paramStr = paramStr .. " " .. item.params.map[p]
+>               if def == true then
+>                   paramStr = paramStr .. "*optional*"
+>               elseif def then
+                    paramStr = paramStr .. def
+>               end
+>               if item:readonly(p) then
+>                   paramStr = paramStr .. "readonly"
+>               end
+- $(paramStr)
+>            end
+>        end
+>   end
+>   if show_return and item.retgroups then local groups = item.retgroups
+
+**Returns**
+
+>   for i,group in ldoc.ipairs(groups) do
+>       for r in group:iter() do 
+>           local type, ctypes = item:return_type(r)
+>           if type then
+(*$(type)*) $(r.text)
+>           end
+>       end
+>   end
+>   end
+> end
+
+> end
+
+
+
+

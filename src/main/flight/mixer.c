@@ -57,6 +57,8 @@ FILE_COMPILE_FOR_SPEED
 
 #include "sensors/battery.h"
 
+#include "programming/programming_overrides.h"
+
 FASTRAM int16_t motor[MAX_SUPPORTED_MOTORS];
 FASTRAM int16_t motor_disarmed[MAX_SUPPORTED_MOTORS];
 static float motorMixRange;
@@ -512,10 +514,10 @@ void FAST_CODE mixTable()
 
     // Find min and max throttle based on condition.
 #ifdef USE_PROGRAMMING_FRAMEWORK
-    if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_THROTTLE)) {
+    if (PROGRAMMING_GLOBAL_FLAG(PROGRAMMING_GLOBAL_FLAG_OVERRIDE_THROTTLE)) {
         throttleRangeMin = throttleIdleValue;
         throttleRangeMax = motorConfig()->maxthrottle;
-        mixerThrottleCommand = constrain(logicConditionValuesByType[LOGIC_CONDITION_OVERRIDE_THROTTLE], throttleRangeMin, throttleRangeMax);
+        mixerThrottleCommand = constrain(programmingValues[PROGRAMMING_VALUE_OVERRIDE_THROTTLE], throttleRangeMin, throttleRangeMax);
     } else
 #endif
     if (feature(FEATURE_REVERSIBLE_MOTORS)) {

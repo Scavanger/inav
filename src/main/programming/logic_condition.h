@@ -139,18 +139,6 @@ typedef enum {
 } logicFlightModeOperands_e;
 
 typedef enum {
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_ARMING_SAFETY = (1 << 0),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_THROTTLE_SCALE = (1 << 1),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_SWAP_ROLL_YAW = (1 << 2),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_INVERT_ROLL = (1 << 3),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_INVERT_PITCH = (1 << 4),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_INVERT_YAW = (1 << 5),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_THROTTLE = (1 << 6),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_OSD_LAYOUT = (1 << 7),
-    LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_RC_CHANNEL = (1 << 8),
-} logicConditionsGlobalFlags_t;
-
-typedef enum {
     LOGIC_CONDITION_FLAG_LATCH      = 1 << 0,
 } logicConditionFlags_e;
 
@@ -175,18 +163,6 @@ typedef struct logicConditionState_s {
     uint8_t flags;
 } logicConditionState_t;
 
-typedef struct rcChannelOverride_s {
-    uint8_t active;
-    int value;
-} rcChannelOverride_t;
-
-extern int logicConditionValuesByType[LOGIC_CONDITION_LAST];
-extern uint64_t logicConditionsGlobalFlags;
-
-#define LOGIC_CONDITION_GLOBAL_FLAG_DISABLE(mask) (logicConditionsGlobalFlags &= ~(mask))
-#define LOGIC_CONDITION_GLOBAL_FLAG_ENABLE(mask) (logicConditionsGlobalFlags |= (mask))
-#define LOGIC_CONDITION_GLOBAL_FLAG(mask) (logicConditionsGlobalFlags & (mask))
-
 void logicConditionProcess(uint8_t i);
 
 int logicConditionGetOperandValue(logicOperandType_e type, int operand);
@@ -194,7 +170,3 @@ int logicConditionGetOperandValue(logicOperandType_e type, int operand);
 int logicConditionGetValue(int8_t conditionId);
 void logicConditionUpdateTask(timeUs_t currentTimeUs);
 void logicConditionReset(void);
-
-float getThrottleScale(float globalThrottleScale);
-int16_t getRcCommandOverride(int16_t command[], uint8_t axis);
-int16_t getRcChannelOverride(uint8_t channel, int16_t originalValue);

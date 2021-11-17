@@ -22,53 +22,49 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <stdlib.h>
-#include <stdint.h>
-
-#include "platform.h"
-
+#include "memory.h"
 #include "common/log.h"
-#include "common/memory.h"
-
-#include "drivers/resource.h"
-
+#include "common/umm_malloc/umm_malloc.h"
+#include "common/umm_malloc/umm_malloc_cfg.h"
 #include "fc/runtime_config.h"
 
-#if !defined(DYNAMIC_HEAP_SIZE)
-#define DYNAMIC_HEAP_SIZE   (2048)
-#endif
+static uint8_t dynamicHeap[DYNAMIC_HEAP_SIZE * 1024];
+void* UMM_MALLOC_CFG_HEAP_ADDR = &dynamicHeap;
+uint32_t UMM_MALLOC_CFG_HEAP_SIZE = DYNAMIC_HEAP_SIZE * 1024;
 
-static uint32_t dynHeap[DYNAMIC_HEAP_SIZE / sizeof(uint32_t)];
-static uint32_t dynHeapFreeWord = 0;
-static size_t dynHeapUsage[OWNER_TOTAL_COUNT];
+void memInit(void) 
+{    
+    umm_init();
+}
 
-void * memAllocate(size_t wantedSize, resourceOwner_e owner)
+void *memReallocate(void* mem, size_t wantedSize)
 {
-    void * retPointer = NULL;
-    const size_t wantedWords = (wantedSize + sizeof(uint32_t) - 1) / sizeof(uint32_t);
-
-    if ((dynHeapFreeWord + wantedWords) <= DYNAMIC_HEAP_SIZE / sizeof(uint32_t)) {
-        // Success
-        retPointer = &dynHeap[dynHeapFreeWord];
-        dynHeapFreeWord += wantedWords;
-        dynHeapUsage[owner] += wantedWords * sizeof(uint32_t);
-        LOG_D(SYSTEM, "Memory allocated. Free memory = %d", memGetAvailableBytes());
-    }
-    else {
+    void* ptr = umm_realloc(mem, wantedSize);
+    if (!ptr) {
         // OOM
         LOG_E(SYSTEM, "Out of memory");
         ENABLE_ARMING_FLAG(ARMING_DISABLED_OOM);
     }
-
-    return retPointer;
+    return ptr;
 }
 
-size_t memGetUsedBytesByOwner(resourceOwner_e owner)
+void *memAllocate(size_t wantedSize)
 {
-    return (owner == OWNER_FREE) ? memGetAvailableBytes() : dynHeapUsage[owner];
+    void* ptr = umm_malloc(wantedSize); 
+    if (!ptr) {
+        // OOM
+        LOG_E(SYSTEM, "Out of memory");
+        ENABLE_ARMING_FLAG(ARMING_DISABLED_OOM);
+    }
+    return ptr;
 }
 
-size_t memGetAvailableBytes(void)
+void memFree(void* ptr) 
 {
-    return (DYNAMIC_HEAP_SIZE / sizeof(uint32_t) - dynHeapFreeWord) * sizeof(uint32_t);
+    umm_free(ptr);
+}
+
+size_t memGetAvailableBytes(void) 
+{
+    return umm_free_heap_size();
 }

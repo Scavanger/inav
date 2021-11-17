@@ -24,9 +24,16 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include "drivers/resource.h"
+#include "platform.h"
 
+#include <stddef.h>
+
+#if !defined(DYNAMIC_HEAP_SIZE)
+#define DYNAMIC_HEAP_SIZE   2
+#endif
+
+void memInit(void);
+void *memAllocate(size_t wantedSize);
+void *memReallocate(void *mem, size_t wantedSize);
+void memFree(void *ptr);
 size_t memGetAvailableBytes(void);
-size_t memGetUsedBytesByOwner(resourceOwner_e owner);
-void * memAllocate(size_t wantedSize, resourceOwner_e owner);
