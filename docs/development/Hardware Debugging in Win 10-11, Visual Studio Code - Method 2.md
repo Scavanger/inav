@@ -8,7 +8,7 @@ In contrast to the instructions above, I had to connect the Target VCC pin of my
 Check with "STM32 ST-LINK Utility" if the connection to the FC is working.
 
 ## Software:
-Read [IDE - Visual Studio Code with Windows 10.md](docs/development/IDE - Visual Studio Code with Windows 10.md) and set up VSCode like this. 
+Read [IDE - Visual Studio Code with Windows 10.md](IDE%20-%20Visual%20Studio%20Code%20with%20Windows%2010.md) and set up VSCode like this. 
 I recommend to use WSL2 and to work in the Linux file system (e.g. `~/git/inav`), access to the files in the Linux FS you get
 in Windows 10 via `\\wsl$` in the address line of the explorer, in Windows 11 via the new entry "Linux" in the explorer.
 
@@ -16,7 +16,7 @@ in Windows 10 via `\\wsl$` in the address line of the explorer, in Windows 11 vi
 
 ## OpenOCD
 Now we come to the sticking point:
-Unfortunately, WSL cannot pass the ST link (or only via tools such as USPIP, see the instructions here: [Windows 11 - VS Code - WSL2 - Hardware Debugging.md](docs/development/Windows 11 - VS Code - WSL2 - Hardware Debugging.md), so OpenOCD must run on the Windows side, which is no problem since gdb and OpenOCD communicate with each other via TCP. 
+Unfortunately, WSL cannot pass the ST link (or only via tools such as USPIP, see the instructions here: [Windows 11 - VS Code - WSL2 - Hardware Debugging.md](Windows%2011%20-%20VS%20Code%20-%20WSL2%20-%20Hardware%20Debugging.md), so OpenOCD must run on the Windows side, which is no problem since gdb and OpenOCD communicate with each other via TCP. 
 
 Tip:
 Only for OpenOCD you don't need to install xpm and node.js, just download the archive at https://github.com/xpack-dev-tools/openocd-xpack/releases and unpack it into a folder of your choice.
@@ -68,7 +68,7 @@ In order for GDB and OpenOCD to be able to communicate with each other, the host
 `export WSL_HOST_IP=$(cat /etc/resolv.conf | sed -rn 's|nameserver (.*)|\1|p')`
 
 Actually, the trick is quite simple:
-In launch.json set the servertype to "external" and gdbTarget to "windows-host-ip:3333", the cfg file must of course be passed when starting openOCD in windows and the connection must be bound to 0.0.0.0.
+In launch.json set `servertype` to `external' and `gdbTarget` to `windows-host-ip:3333`, the .cfg file must of course be passed when starting openOCD in windows and the connection must be bound to 0.0.0.0.
 
 ## VSCode configuration files
 
@@ -247,8 +247,9 @@ Only the settings.json needs to be modified:
 | inav.release.target | Release target, for example `MATEKF722SE` |
 | inav.debug.board | cfg file for OpenOCD, matching the processor of the board, e.g. `f4fc.cfg`, see above |
 
-### The following tasks are available
+### Tasks
 
+The following tasks are available
 | Task | Description |
 |------|-------------|
 | Launch OpenOCD | Must be started manually once per session, starts OpenOCD with the correct options. |
