@@ -3,7 +3,7 @@
 Real debugging makes life easier, here is a configuration for VSCode with WSL for Windows 10/11.
 
 ## Hardware:
-For the basics, please read [Hardware Debugging.md](docs/development/Hardware Debugging.md) up to the section "Compilation options", everything after that is outdated.
+For the basics, please read [Hardware Debugging.md](Hardware Debugging.md) up to the section "Compilation options", everything after that is outdated.
 In contrast to the instructions above, I had to connect the Target VCC pin of my original ST-Link/V2 to the 3.3V of the FC, otherwise I got an error message that the voltage of the target was too low. The FC is not supplied with voltage via this pin, only the voltage of the target is measured to ensure signal compatibility. (See ST-Link/V2 manual, table 4).
 Check with "STM32 ST-LINK Utility" if the connection to the FC is working.
 
