@@ -16,7 +16,7 @@ in Windows 10 via `\\wsl$` in the address line of the explorer, in Windows 11 vi
 
 ## OpenOCD
 Now we come to the sticking point:
-Unfortunately, WSL cannot pass the ST link (or only via tools such as USPIP, see the instructions here: [Windows 11 - VS Code - WSL2 - Hardware Debugging.md](Windows%2011%20-%20VS%20Code%20-%20WSL2%20-%20Hardware%20Debugging.md), so OpenOCD must run on the Windows side, which is no problem since gdb and OpenOCD communicate with each other via TCP. 
+Unfortunately, WSL cannot pass the ST link (or only via tools such as usbipd-win, see the instructions here: [Windows 11 - VS Code - WSL2 - Hardware Debugging.md](Windows%2011%20-%20VS%20Code%20-%20WSL2%20-%20Hardware%20Debugging.md)), so OpenOCD must run on the Windows side, which is no problem since gdb and OpenOCD communicate with each other via TCP. 
 
 Tip:
 Only for OpenOCD you don't need to install xpm and node.js, just download the archive at https://github.com/xpack-dev-tools/openocd-xpack/releases and unpack it into a folder of your choice.
@@ -241,7 +241,7 @@ Only the settings.json needs to be modified:
 |--------|-------------|
 | cortex-debug.armToolchainPath | path to ARM toolchain, e.g. `${workspaceRoot}/tools/gcc-arm-none-eabi-10-2020-q4-major/bin` |
 | openocd.host | IP address of the Windows host, if the environment variable was set as above, do not change anything here, otherwise manually enter the IP of the Windows host. |
-| openocd.path | Path to OpenOCD in Windows, format `/mnt/[windows-drive-letter]/path/to/openocd.exe]`, for example `/mnt/c/openocd-0.11.0-1/bin/openocd.exe`. |
+| openocd.path | Path to OpenOCD in Windows, format `/mnt/[windows-drive-letter]/path/to/openocd.exe`, for example `/mnt/c/openocd-0.11.0-1/bin/openocd.exe`. |
 | inav.debug.svdFile | SVD file, accroding to the processor on your board, see `/dev/svd`, for example `STM32F405.svd`. |
 | inav.debug.target | Debug target, for example `OMNIBUSF4SD` |
 | inav.release.target | Release target, for example `MATEKF722SE` |
@@ -268,4 +268,4 @@ With `F5`, a new debug session can be started normally (recompiling if necessary
 
 ## Problem solving
 If OpenOCD reports an error `Couldn't bind to ...`, it may be that Hyper-V is blocking these ports, see this thread on stackoverflow for solutions:
-[https://stackoverflow.com/questions/48478869/cannot-bind-to-some-ports-due-to-permission-denied]
+https://stackoverflow.com/questions/48478869/cannot-bind-to-some-ports-due-to-permission-denied
