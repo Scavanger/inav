@@ -337,6 +337,8 @@ void initActiveBoxIds(void)
     ADD_ACTIVE_BOX(BOXUSER4);
 #endif
 
+   ADD_ACTIVE_BOX(BOXGPSOFF);
+
 #if defined(USE_OSD) && defined(OSD_LAYOUT_COUNT)
 #if OSD_LAYOUT_COUNT > 0
     ADD_ACTIVE_BOX(BOXOSDALT1);

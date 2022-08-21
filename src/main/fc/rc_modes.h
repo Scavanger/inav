@@ -74,7 +74,7 @@ typedef enum {
     BOXAUTOLEVEL     = 45,
     BOXPLANWPMISSION = 46,
     BOXSOARING       = 47,
-    BOXUSER3         = 48,
+    BOXUSER3         = 48
     BOXUSER4         = 49,
     BOXCHANGEMISSION = 50,
     BOXBEEPERMUTE    = 51,
