@@ -1,0 +1,63 @@
+src/main/target/SITL/CMakeFiles/SITL.elf.dir/__/__/io/rcdevice_cam.c.o: \
+ /home/andi/git/inav/src/main/io/rcdevice_cam.c \
+ /usr/include/stdc-predef.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /usr/include/features.h /usr/include/features-time64.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/bits/timesize.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/long-double.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+ /usr/include/x86_64-linux-gnu/bits/time64.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
+ /home/andi/git/inav/src/main/cms/cms.h \
+ /home/andi/git/inav/src/main/drivers/display.h \
+ /home/andi/git/inav/src/main/config/parameter_group.h \
+ /home/andi/git/inav/src/main/build/build_config.h \
+ /home/andi/git/inav/src/main/common/time.h \
+ /home/andi/git/inav/src/main/platform.h \
+ /home/andi/git/inav/src/main/target/common.h \
+ /home/andi/git/inav/src/main/target/SITL/target.h \
+ /home/andi/git/inav/src/main/target/sanity_check.h \
+ /home/andi/git/inav/src/main/target/common_post.h \
+ /home/andi/git/inav/src/main/cms/cms_types.h \
+ /home/andi/git/inav/src/main/common/printf.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h \
+ /home/andi/git/inav/src/main/common/utils.h \
+ /home/andi/git/inav/src/main/fc/rc_controls.h \
+ /home/andi/git/inav/src/main/fc/runtime_config.h \
+ /home/andi/git/inav/src/main/io/beeper.h \
+ /home/andi/git/inav/src/main/io/rcdevice_cam.h /usr/include/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/ctype.h \
+ /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/endianness.h \
+ /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+ /home/andi/git/inav/src/main/io/rcdevice.h \
+ /home/andi/git/inav/src/main/drivers/serial.h \
+ /home/andi/git/inav/src/main/drivers/io.h \
+ /home/andi/git/inav/src/main/drivers/resource.h \
+ /home/andi/git/inav/src/main/drivers/io_types.h \
+ /home/andi/git/inav/src/main/drivers/io_def.h \
+ /home/andi/git/inav/src/main/drivers/io_def_generated.h \
+ /home/andi/git/inav/src/main/fc/rc_modes.h \
+ /home/andi/git/inav/src/main/common/bitarray.h \
+ /home/andi/git/inav/src/main/rx/rx.h \
+ /home/andi/git/inav/src/main/common/tristate.h
