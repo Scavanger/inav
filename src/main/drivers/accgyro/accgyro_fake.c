@@ -30,6 +30,7 @@
 #ifdef USE_IMU_FAKE
 
 static int16_t fakeGyroADC[XYZ_AXIS_COUNT];
+static int16_t fakeGyroTemp = 0;
 
 static void fakeGyroInit(gyroDev_t *gyro)
 {
@@ -43,6 +44,11 @@ void fakeGyroSet(int16_t x, int16_t y, int16_t z)
     fakeGyroADC[Z] = z;
 }
 
+void fakeGyroSetTemperature(int16_t temperature)
+{
+    fakeGyroTemp = temperature;
+}
+
 static bool fakeGyroRead(gyroDev_t *gyro)
 {
     gyro->gyroADCRaw[X] = fakeGyroADC[X];
@@ -54,7 +60,7 @@ static bool fakeGyroRead(gyroDev_t *gyro)
 static bool fakeGyroReadTemperature(gyroDev_t *gyro, int16_t *temperatureData)
 {
     UNUSED(gyro);
-    UNUSED(temperatureData);
+    *temperatureData = fakeGyroTemp;
     return true;
 }
 

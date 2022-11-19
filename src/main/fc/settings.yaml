@@ -335,7 +335,7 @@ groups:
         description: "Calculated 1G of Acc axis Z to use in INS"
         default_value: 0.0
         field: gravity_cmss_cal
-        min: 0
+        min: -2000
         max: 2000
 
   - name: PG_ADC_CHANNEL_CONFIG

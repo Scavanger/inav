@@ -281,9 +281,12 @@ bool gyroInit(void)
 #else
     gyroDev[0].imuSensorToUse = 0;
 #endif
-
+#ifdef SIMULATOR_BUILD
+    gyroSensor_e gyroHardware = gyroDetect(&gyroDev[0], GYRO_FAKE);
+#else
     // Detecting gyro0
     gyroSensor_e gyroHardware = gyroDetect(&gyroDev[0], GYRO_AUTODETECT);
+    #endif
     if (gyroHardware == GYRO_NONE) {
         gyro.initialized = false;
         detectedSensors[SENSOR_INDEX_GYRO] = GYRO_NONE;

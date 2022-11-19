@@ -66,10 +66,18 @@ extern uint8_t __config_end;
 
 #define USE_ARM_MATH // try to use FPU functions
 
-#if defined(SIMULATOR_BUILD) || defined(UNIT_TEST)
+#if defined(UNIT_TEST)
 // This feature uses 'arm_math.h', which does not exist for x86.
 #undef USE_DYNAMIC_FILTERS
 #undef USE_ARM_MATH
+#endif
+
+#ifdef SIMULATOR_BUILD
+    #define USE_IMU_FAKE
+    #define USE_FAKE_ACC
+    #define USE_FAKE_BARO
+    #define USE_FAKE_MAG
+    #define USE_PITOT_FAKE
 #endif
 
 //Defines for compiler optimizations

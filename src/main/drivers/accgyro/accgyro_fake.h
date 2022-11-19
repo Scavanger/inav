@@ -24,3 +24,4 @@ void fakeAccSet(int16_t x, int16_t y, int16_t z);
 
 bool fakeGyroDetect(gyroDev_t *gyro);
 void fakeGyroSet(int16_t x, int16_t y, int16_t z);
+void fakeGyroSetTemperature(int16_t temperature);

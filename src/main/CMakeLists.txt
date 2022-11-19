@@ -214,6 +214,8 @@ main_sources(COMMON_SRC
     drivers/pitotmeter/pitotmeter_msp.h
     drivers/pitotmeter/pitotmeter_virtual.c
     drivers/pitotmeter/pitotmeter_virtual.h
+    drivers/pitotmeter/pitotmeter_fake.c
+    drivers/pitotmeter/pitotmeter_fake.h
     drivers/pwm_esc_detect.c
     drivers/pwm_esc_detect.h
     drivers/pwm_mapping.c
@@ -500,6 +502,8 @@ main_sources(COMMON_SRC
     io/displayport_srxl.h
     io/displayport_hott.c
     io/displayport_hott.h
+    io/displayport_hitl.h
+    io/displayport_hitl.c
     io/flashfs.c
     io/flashfs.h
     io/gps.c

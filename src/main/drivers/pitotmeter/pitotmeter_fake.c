@@ -31,14 +31,16 @@
 static int32_t fakePressure;
 static int32_t fakeTemperature;
 
-static void fakePitotStart(pitotDev_t *pitot)
+static bool fakePitotStart(pitotDev_t *pitot)
 {
     UNUSED(pitot);
+    return true;
 }
 
-static void fakePitotRead(pitotDev_t *pitot)
+static bool fakePitotRead(pitotDev_t *pitot)
 {
     UNUSED(pitot);
+    return true;
 }
 
 static void fakePitotCalculate(pitotDev_t *pitot, float *pressure, float *temperature)

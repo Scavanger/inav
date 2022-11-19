@@ -58,6 +58,10 @@
 #include "drivers/timer.h"
 #include "drivers/vtx_common.h"
 
+#ifdef SIMULATOR_BUILD
+#include "drivers/accgyro/accgyro_fake.h"
+#endif
+
 #include "fc/fc_core.h"
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
@@ -92,6 +96,9 @@
 #include "io/serial_4way.h"
 #include "io/vtx.h"
 #include "io/vtx_string.h"
+#ifdef SIMULATOR_BUILD
+#include "io/displayport_hitl.h"
+#endif
 
 #include "msp/msp.h"
 #include "msp/msp_protocol.h"
@@ -1580,6 +1587,51 @@ static void mspFcWaypointOutCommand(sbuf_t *dst, sbuf_t *src)
     sbufWriteU16(dst, msp_wp.p3);     // P3
     sbufWriteU8(dst, msp_wp.flag);    // flags
 }
+
+#ifdef SIMULATOR_BUILD
+static void mspHitlCommand(sbuf_t *dst, sbuf_t *src)
+{    
+    int16_t temperature;
+    int16_t accX, accY, accZ;
+    int16_t gyroX, gyroY, gyroZ;
+    sbufReadDataSafe(src, &simDt, sizeof(float));
+    sbufAdvance(src, sizeof(float));
+    sbufReadI16Safe(&temperature, src);
+    sbufReadI16Safe(&gyroX, src);
+    sbufReadI16Safe(&gyroY, src);
+    sbufReadI16Safe(&gyroZ, src);
+    sbufReadI16Safe(&accX, src);
+    sbufReadI16Safe(&accY, src);
+    sbufReadI16Safe(&accZ, src);
+    fakeGyroSet(gyroX, gyroY, gyroZ);
+    fakeGyroSetTemperature(temperature);
+    fakeAccSet(accX, accY, accZ);
+
+    const uint8_t motorCount = getMotorCount();
+    const int servoCount = getServoCount();
+    sbufWriteU8(dst, motorCount);
+    sbufWriteU8(dst, (uint8_t)servoCount);
+
+    for (size_t i = 0; i < motorCount; i++) {
+       sbufWriteU16(dst, motor[i]);
+    }
+    
+    for (int i = 0; i <= servoCount; i++) {
+        sbufWriteU16(dst, servo[i]);
+    }
+
+#ifdef USE_OSD
+    uint16_t osdCmdLength = 0;
+    uint8_t *osdCmd = hitlGetOutCmd(&osdCmdLength);
+    sbufWriteU16(dst, osdCmdLength);
+    if (osdCmdLength){
+        sbufWriteData(dst, osdCmd, osdCmdLength);
+    }
+#else
+    sbufWriteU16(dst, 0);
+#endif
+}
+#endif
 
 #ifdef USE_FLASHFS
 static void mspFcDataFlashReadCommand(sbuf_t *dst, sbuf_t *src)
@@ -3251,6 +3303,13 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
     case MSP2_INAV_SAFEHOME:
          *ret = mspFcSafeHomeOutCommand(dst, src);
          break;
+
+#ifdef SIMULATOR_BUILD
+    case MSP2_INAV_HITL:
+        mspHitlCommand(dst, src);
+        *ret = MSP_RESULT_ACK;
+        break;
+#endif
 
     default:
         // Not handled

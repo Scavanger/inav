@@ -34,6 +34,9 @@ typedef enum disarmReason_e {
     DISARM_REASON_COUNT
 } disarmReason_t;
 
+#ifdef SIMULATOR_BUILD
+extern float simDt;
+#endif
 
 void handleInflightCalibrationStickPosition(void);
 

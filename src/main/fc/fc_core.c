@@ -124,6 +124,10 @@ timeDelta_t cycleTime = 0;         // this is the number in micro second to achi
 static timeUs_t flightTime = 0;
 static timeUs_t armTime = 0;
 
+#ifdef SIMULATOR_BUILD
+float simDt;
+#endif
+
 EXTENDED_FASTRAM float dT;
 
 int16_t headFreeModeHold;
@@ -849,7 +853,11 @@ static float calculateThrottleTiltCompensationFactor(uint8_t throttleTiltCompens
 void taskMainPidLoop(timeUs_t currentTimeUs)
 {
     cycleTime = getTaskDeltaTime(TASK_SELF);
+    #ifndef SIMULATOR_BUILD
     dT = (float)cycleTime * 0.000001f;
+    #else
+    dT = simDt / 1000; 
+    #endif
 
     if (ARMING_FLAG(ARMED) && (!STATE(FIXED_WING_LEGACY) || !isNavLaunchEnabled() || (isNavLaunchEnabled() && fixedWingLaunchStatus() >= FW_LAUNCH_DETECTED))) {
         flightTime += cycleTime;

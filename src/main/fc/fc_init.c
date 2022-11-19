@@ -109,6 +109,7 @@
 #include "io/displayport_max7456.h"
 #include "io/displayport_hdzero_osd.h"
 #include "io/displayport_srxl.h"
+#include "io/displayport_hitl.h"
 #include "io/flashfs.h"
 #include "io/gps.h"
 #include "io/ledstrip.h"
@@ -546,6 +547,11 @@ void init(void)
 
 #ifdef USE_OSD
     if (feature(FEATURE_OSD)) {
+#ifdef SIMULATOR_BUILD
+    if (!osdDisplayPort) {
+       osdDisplayPort = hitlDisplayPortInit();
+    }
+#endif
 #if defined(USE_FRSKYOSD)
         if (!osdDisplayPort) {
             osdDisplayPort = frskyOSDDisplayPortInit(osdConfig()->video_system);
