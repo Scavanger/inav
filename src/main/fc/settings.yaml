@@ -3873,3 +3873,15 @@ groups:
         default_value: 1.2
         field: attnFilterCutoff
         max: 100
+  
+  - name: PG_DISPLAYPORT_HITL_CONFIG
+    type: displayportHitlConfig_t
+    headers: ["io/displayport_hitl_osd.h"]
+    condition: USE_SIMULATOR
+    members:
+      - name: use_simulator_hd_displayport
+        description: "Use HD OSD for HITL simulation"
+        field: use 
+        default_value: OFF
+        type: bool
+

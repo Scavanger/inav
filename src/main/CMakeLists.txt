@@ -472,6 +472,8 @@ main_sources(COMMON_SRC
     io/dashboard.h
     io/displayport_frsky_osd.c
     io/displayport_frsky_osd.h
+    io/displayport_hitl_osd.c
+    io/displayport_hitl_osd.h
     io/displayport_max7456.c
     io/displayport_max7456.h
     io/displayport_msp.c

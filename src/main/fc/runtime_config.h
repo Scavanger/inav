@@ -180,13 +180,15 @@ typedef enum {
 	HITL_USE_IMU			    = (1 << 3), // Use the Acc and Gyro data provided by XPlane to calculate Attitude (i.e. 100% of the calculations made by AHRS from INAV)
 	HITL_HAS_NEW_GPS_DATA		= (1 << 4),
 	HITL_EXT_BATTERY_VOLTAGE	= (1 << 5), // Extend MSP_SIMULATOR format 2
-    HITL_AIRSPEED               = (1 << 6) 
+    HITL_AIRSPEED               = (1 << 6),
+    HITL_USE_MSP_DISPLAYPORT    = (1 << 7),
 } simulatorFlags_t;
 
 typedef struct {
 	simulatorFlags_t flags;
 	uint8_t debugIndex;
-    uint8_t vbat;      // 126 -> 12.6V
+    uint16_t vbat;      // 126 -> 12.6V
+    uint16_t amperage; 
 	uint16_t airSpeed; // cm/s
     int16_t input[4];
 } simulatorData_t;

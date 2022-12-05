@@ -54,11 +54,12 @@
 #define USE_64BIT_TIME
 #define USE_BLACKBOX
 #define USE_GPS
-#define USE_GPS_PROTO_UBLOX
+#define USE_GPS_PROTO_UBLOXB
 #define USE_GPS_PROTO_MSP
 #define USE_TELEMETRY
 #define USE_TELEMETRY_LTM
 #define USE_TELEMETRY_FRSKY
+#define USE_FAKE_BARO
 
 #if defined(STM_FAST_TARGET)
 #define SCHEDULER_DELAY_LIMIT           10

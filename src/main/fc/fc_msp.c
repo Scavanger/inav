@@ -92,6 +92,7 @@
 #include "io/vtx.h"
 #include "io/vtx_string.h"
 #include "io/gps_private.h"  //for MSP_SIMULATOR
+#include "io/displayport_hitl_osd.h" 
 
 #include "msp/msp.h"
 #include "msp/msp_protocol.h"
@@ -3502,9 +3503,11 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 				}
 
                 if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
-                    simulatorData.vbat = sbufReadU8(src);
+                    simulatorData.vbat = sbufReadU16(src);
+                    simulatorData.amperage = sbufReadU16(src);
                 } else {
                     simulatorData.vbat = (uint8_t)(SIMULATOR_FULL_BATTERY * 10.0f);
+                    simulatorData.amperage = 0;
                 }
 
                 if (SIMULATOR_HAS_OPTION(HITL_AIRSPEED)) {
@@ -3514,22 +3517,24 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 				DISABLE_STATE(GPS_FIX);
 			}
 		}
-
+ 
+        /*
 		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_ROLL]);
 		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_PITCH]);
 		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_YAW]);
 		sbufWriteU16(dst, (uint16_t)(ARMING_FLAG(ARMED) ? simulatorData.input[INPUT_STABILIZED_THROTTLE] : -500));
-
-		simulatorData.debugIndex++;
-		if (simulatorData.debugIndex == 8) {
-			simulatorData.debugIndex = 0;
-		}
+        */    
 
 		tmp_u8 = simulatorData.debugIndex |
 			((mixerConfig()->platformType == PLATFORM_AIRPLANE) ? 128 : 0) |
 			(ARMING_FLAG(ARMED) ? 64 : 0) |
 			(!feature(FEATURE_OSD) ? 32: 0) |
 			(!isOSDTypeSupportedBySimulator() ? 16 : 0);
+
+        simulatorData.debugIndex++;
+		if (simulatorData.debugIndex == 8) {
+			simulatorData.debugIndex = 0;
+		}
 
 		sbufWriteU8(dst, tmp_u8);
 		sbufWriteU32(dst, debug[simulatorData.debugIndex]);
@@ -3538,7 +3543,24 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 		sbufWriteU16(dst, attitude.values.pitch);
 		sbufWriteU16(dst, attitude.values.yaw);
 
-		mspWriteSimulatorOSD(dst);
+        for (size_t i = 0; i < MAX_MOTORS; i++) {
+            sbufWriteU16(dst, motor[i]);
+        }
+        
+        for (int i = 0; i < MAX_SERVOS; i++) {
+            sbufWriteU16(dst, servo[i]);
+        }
+
+        if (SIMULATOR_HAS_OPTION(HITL_USE_MSP_DISPLAYPORT)) {
+            uint16_t length = 0;
+            uint8_t *osdCmd = hitlDisplayPortGetOutCmd(&length);
+            sbufWriteU16(dst, length);
+            if (length) {
+                sbufWriteData(dst, osdCmd, length);
+            }
+        } else {
+		    mspWriteSimulatorOSD(dst);
+        }
 
         *ret = MSP_RESULT_ACK;
         break;

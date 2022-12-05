@@ -3723,7 +3723,8 @@ static void osdCompleteAsyncInitialization(void)
     osdSetNextRefreshIn(SPLASH_SCREEN_DISPLAY_TIME);
 }
 
-void osdInit(displayPort_t *osdDisplayPortToUse)
+void 
+osdInit(displayPort_t *osdDisplayPortToUse)
 {
     if (!osdDisplayPortToUse)
         return;

@@ -292,11 +292,11 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
     }
 #ifdef USE_SIMULATOR
 	if (ARMING_FLAG(SIMULATOR_MODE)) {
-		if (SIMULATOR_HAS_OPTION(HITL_SIMULATE_BATTERY)) {
-            vbat = ((uint16_t)simulatorData.vbat) * 10;
-            batteryFullVoltage = 1260;
-			batteryWarningVoltage = 1020;
-			batteryCriticalVoltage = 960;
+		if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
+            vbat = simulatorData.vbat;
+            //batteryFullVoltage = 1260;
+			//batteryWarningVoltage = 1020;
+			//batteryCriticalVoltage = 960;
 		}
 	}
 #endif
@@ -582,6 +582,14 @@ void currentMeterUpdate(timeUs_t timeDelta)
             amperage = 0;
             break;
     }
+
+    #ifdef USE_SIMULATOR
+	if (ARMING_FLAG(SIMULATOR_MODE)) {
+		if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
+            amperage = simulatorData.amperage;
+		}
+	}
+#endif
 
     // Clamp amperage to positive values
     amperage = MAX(0, amperage);

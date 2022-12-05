@@ -102,6 +102,7 @@
 #include "io/lights.h"
 #include "io/dashboard.h"
 #include "io/displayport_frsky_osd.h"
+#include "io/displayport_hitl_osd.h"
 #include "io/displayport_msp.h"
 #include "io/displayport_max7456.h"
 #include "io/displayport_msp_osd.h"
@@ -538,6 +539,12 @@ void init(void)
 
 #ifdef USE_OSD
     if (feature(FEATURE_OSD)) {
+#if defined (USE_SIMULATOR)
+    if (!osdDisplayPort && displayPortHitlConfig()->use){
+        osdDisplayPort = hitlDisplayPortInit();
+    }
+#endif
+
 #if defined(USE_FRSKYOSD)
         if (!osdDisplayPort) {
             osdDisplayPort = frskyOSDDisplayPortInit(osdConfig()->video_system);
