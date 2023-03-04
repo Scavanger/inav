@@ -65,13 +65,13 @@ jobs:
           VERSION=$(grep project CMakeLists.txt|awk -F VERSION '{ gsub(/^[ \t]+|[ \t\)]+$/, "", $2); print $2 }')
           echo "BUILD_SUFFIX=${BUILD_SUFFIX}" >> $GITHUB_ENV
           echo "BUILD_NAME=inav-${VERSION}-${BUILD_SUFFIX}" >> $GITHUB_ENV
-        - name: Build SITL
-          run: mkdir -p build_SITL && cd build_SITL && cmake -DSITL=ON -DWARNINGS_AS_ERRORS=ON -G Ninja .. && ninja
-        - name: Upload artifacts
-          uses: actions/upload-artifact@v2-preview
-          with:
-            name: ${{ env.BUILD_NAME }}_SITL.zip
-            path: ./build_SITL/*_SITL
+      - name: Build SITL
+        run: mkdir -p build_SITL && cd build_SITL && cmake -DSITL=ON -DWARNINGS_AS_ERRORS=ON -G Ninja .. && ninja
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2-preview
+        with:
+          name: ${{ env.BUILD_NAME }}_SITL.zip
+          path: ./build_SITL/*_SITL
        
 
   test:
