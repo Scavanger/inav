@@ -7,7 +7,10 @@ on: workflow_dispatch
 jobs:
   
   build-SITL-Windows:
-    runs-on: windows-2022
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: C:\tools\cygwin\bin\bash.exe --login -o igncr '{0}'
     steps:
       - uses: actions/checkout@v3
       - name: Install Cygwin
