@@ -16,7 +16,7 @@ jobs:
       - name: Install Cygwin
         uses: egor-tensin/setup-cygwin@v4
         with:
-          packages: cmake python3 ruby ninja gcc-g++
+          packages: cmake ruby ninja gcc-g++
       - name: Setup environment
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
