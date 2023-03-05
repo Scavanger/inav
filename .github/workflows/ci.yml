@@ -38,8 +38,8 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2-preview
         with:
-          name: ${{ env.BUILD_NAME }}_SITL.zip
-          path: ./build_SITL/*_SITL
+          name: ${{ env.BUILD_NAME }}_SITL-WIN.zip
+          path: ./build_SITL/*.exe
   
   build-SITL-Linux:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2-preview
         with:
-          name: ${{ env.BUILD_NAME }}_SITL.zip
+          name: ${{ env.BUILD_NAME }}_SITL-LINUX.zip
           path: ./build_SITL/*_SITL
        
 
