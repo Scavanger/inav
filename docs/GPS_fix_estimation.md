@@ -23,6 +23,8 @@ GPS Fix is also estimated on GPS Sensor timeouts (hardware failures).
 
 Note, that GPS fix estimation is not a solution for navigation without GPS. Without GPS fix, position error accumulates quickly. But it is acceptable for RTH. This is not a solution for flying under spoofing also. GPS is the most trusted sensor in Inav. It's output is not validated.
 
+GPS Fix is also estimated on GPS Sensor timeout (harware failure).
+
 # How it works ?
 
 In normal situation, plane is receiving it's position from GPS sensor. This way it is able to hold course, RTH or navigate by waypoints.
@@ -57,6 +59,7 @@ In general, accuracy is enough to perform RTH U-turn when both RC controls and G
 It is recommened to use GPS fix estimation without magnethometer as last resort only. For example, if plane is flying above lake, landing means loss of plane. With GPS Fix estimation, plane will try to do RTH in very rought direction, instead of landing.
 
 It is up to user to estimate the risk of fly-away.
+
 
 
 # Settings
