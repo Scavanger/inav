@@ -408,6 +408,8 @@ void gpsProcessNewSolutionData(bool timeout)
 
     // Toggle heartbeat
     gpsSol.flags.gpsHeartbeat = !gpsSol.flags.gpsHeartbeat;
+
+    debug[0]+=1;
 }
 
 static void gpsResetSolution(gpsSolutionData_t* gpsSol)
@@ -639,6 +641,7 @@ bool isGPSHealthy(void)
     return true;
 }
 
+//NOTE: checks if real GPS data present, ignoring any available GPS Fix estimation 
 bool isGPSHeadingValid(void)
 {
     return ((STATE(GPS_FIX) && gpsSol.numSat >= 6) 
