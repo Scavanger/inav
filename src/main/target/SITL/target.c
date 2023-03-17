@@ -283,7 +283,7 @@ void delay(timeMs_t ms)
 void systemReset(void)
 {
     fprintf(stderr, "[SYSTEM] Reset\n");
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || (defined(__GNUC__) && __GNUC__  < 11)
     for(int j = 3; j < 1024; j++) {
 	close(j);
     }
