@@ -641,7 +641,6 @@ bool isGPSHealthy(void)
     return true;
 }
 
-//NOTE: checks if real GPS data present, ignoring any available GPS Fix estimation 
 bool isGPSHeadingValid(void)
 {
     return ((STATE(GPS_FIX) && gpsSol.numSat >= 6) 
