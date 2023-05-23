@@ -93,6 +93,7 @@
 #include "io/vtx.h"
 #include "io/vtx_string.h"
 #include "io/gps_private.h"  //for MSP_SIMULATOR
+#include "io/displayport_hitl.h"
 
 #include "msp/msp.h"
 #include "msp/msp_protocol.h"
@@ -3254,7 +3255,7 @@ bool isOSDTypeSupportedBySimulator(void)
 {
 #ifdef USE_OSD
 	displayPort_t *osdDisplayPort = osdGetDisplayPort();
-	return (osdDisplayPort && osdDisplayPort->cols == 30 && (osdDisplayPort->rows == 13 || osdDisplayPort->rows == 16));
+	return (osdDisplayPort && osdDisplayPort->cols == 60 && osdDisplayPort->rows == 22);
 #else
     return false;
 #endif
@@ -3468,10 +3469,11 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 
 #ifdef USE_SIMULATOR
     case MSP_SIMULATOR:
-		tmp_u8 = sbufReadU8(src); // Get the Simulator MSP version
+	{
+        uint8_t simMspVersion = sbufReadU8(src); // Get the Simulator MSP version
         
         // Check the MSP version of simulator
-		if (tmp_u8 != SIMULATOR_MSP_VERSION) {
+		if (simMspVersion < SIMULATOR_MSP_LEAGCY_VERSION) {
             break;
         }
 
@@ -3509,6 +3511,9 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 					mag.magADC[Y] = 0;
 					mag.magADC[Z] = 0;
 				}
+#endif
+#ifdef USE_OSD
+                hitlDisplayportForceRedraw();
 #endif
 				ENABLE_ARMING_FLAG(SIMULATOR_MODE_HITL);
 				LOG_DEBUG(SYSTEM, "Simulator enabled");
@@ -3627,8 +3632,25 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 		sbufWriteU16(dst, attitude.values.pitch);
 		sbufWriteU16(dst, attitude.values.yaw);
 
-		mspWriteSimulatorOSD(dst);
-
+#ifdef USE_OSD
+        if (hitlOsdConfig()->useHdOSD && SIMULATOR_HAS_OPTION(HITL_HD_OSD)) {
+            uint16_t osdCmdLength = 0;
+            uint8_t *osdCmd = hitlDisplayportGetOutCmd(&osdCmdLength);
+            if (osdCmdLength) {
+                sbufWriteU16(dst, osdCmdLength);
+                sbufWriteData(dst, osdCmd, osdCmdLength);
+            }
+        } else {
+            if (simMspVersion == SIMULATOR_MSP_LEAGCY_VERSION) {
+                mspWriteSimulatorOSD(dst);
+            } else {
+                sbufWriteU16(dst, 0);
+            }
+        }
+    }
+#else
+    sbufWriteU16(dst, 0);
+#endif
         *ret = MSP_RESULT_ACK;
         break;
 #endif

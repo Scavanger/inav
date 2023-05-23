@@ -494,6 +494,8 @@ main_sources(COMMON_SRC
     io/displayport_srxl.h
     io/displayport_hott.c
     io/displayport_hott.h
+    io/displayport_hitl.c
+    io/displayport_hitl.h
     io/flashfs.c
     io/flashfs.h
     io/gps.c
