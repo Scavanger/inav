@@ -631,7 +631,7 @@ displayPort_t *frskyOSDDisplayPortInit(const videoSystem_e videoSystem)
     if (frskyOSDInit(videoSystem)) {
         displayInit(&frskyOSDDisplayPort, &frskyOSDVTable);
         resync(&frskyOSDDisplayPort);
-        frskyOSDDisplayPort.displayPortType = "FrSky PixelOSD";
+        frskyOSDDisplayPort.displayPortType = FRSKY_DISPLAYPORT_TYPE;
         return &frskyOSDDisplayPort;
     }
     return NULL;

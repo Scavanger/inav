@@ -62,13 +62,18 @@
 #define SCREENSIZE (ROWS*COLS)
 #define TIMEOUT 1000
 
+#define HITL_DP_OUT_BUF_SIZE 500
+#define HITL_DP_MAX_SEND_SIZE 155
+
 PG_REGISTER_WITH_RESET_TEMPLATE(hitlOsdConfig_t, hitlOsdConfig, PG_HITL_OSD_CONFIG, 1);
 PG_RESET_TEMPLATE(hitlOsdConfig_t, hitlOsdConfig,
     .useHdOSD = 0,
 );
 
-static uint8_t hitlDisplayPortOutCmd[SCREENSIZE + 4];
-static uint16_t outCmdLength = 0;
+static uint8_t cmdBuffer[HITL_DP_OUT_BUF_SIZE];
+static uint8_t outBuf[HITL_DP_MAX_SEND_SIZE] = { 0 };
+static uint16_t cmdBufferHead = 0;
+static uint16_t cmdBufferTail = 0;
 static bool isActive = false;
 static bool counterPartPresent = false;
 static bool reset = false;
@@ -84,9 +89,12 @@ static bool screenCleared;
 
 static int output(uint8_t *subcmd, int len)
 {
-    if (isActive) {        
-        memcpy(hitlDisplayPortOutCmd + outCmdLength, subcmd, len);
-        outCmdLength += len;
+    if (isActive && len <= HITL_DP_OUT_BUF_SIZE) {        
+        for (int i = 0; i < len; i++)
+        {
+           cmdBuffer[cmdBufferHead] = subcmd[i];
+           cmdBufferHead = (cmdBufferHead + 1) % HITL_DP_OUT_BUF_SIZE;
+        }    
         return len;
     } else {
         return 0;
@@ -138,7 +146,6 @@ static void checkConnection(void)
 static void zeroHitlDisplayPort(void)
 {
     memset(screen, SYM_BLANK, sizeof(screen));
-    memset(hitlDisplayPortOutCmd, 0, sizeof(hitlDisplayPortOutCmd));
     ARRAY_OF_BITARRAYS_CLR_ALL(extdChar);
     ARRAY_OF_BITARRAYS_CLR_ALL(dirty);
 }
@@ -147,7 +154,6 @@ static int clearScreen(displayPort_t *displayPort)
 {
     UNUSED(displayPort);
 
-    outCmdLength = 0;
     uint8_t subcmd[] = { HITL_OSD_CLEAR_SCREEN };
 
     zeroHitlDisplayPort();
@@ -240,7 +246,7 @@ static int release(displayPort_t *displayPort)
 static bool isTransferInProgress(const displayPort_t *displayPort)
 {
     UNUSED(displayPort);
-    return outCmdLength != 0;
+    return false;
 }
 
 static bool isReady(displayPort_t *displayPort)
@@ -304,12 +310,14 @@ displayPort_t* hitlDisplayPortInit(void)
 {
     zeroHitlDisplayPort();
     displayInit(&hitlDisplayPort, &hitlDisplayPortvTable);
+    hitlDisplayPort.displayPortType = HITL_DISPLAYPORT_TYPE;
     return &hitlDisplayPort;
 }
 
 void hitlDisplayportForceRedraw(void)
 {
    clearScreen(NULL);
+   cmdBufferHead = cmdBufferTail = 0;
 }
 
 uint8_t *hitlDisplayportGetOutCmd(uint16_t *length)
@@ -321,15 +329,19 @@ uint8_t *hitlDisplayportGetOutCmd(uint16_t *length)
     //Assume commmand is transmitted immediately
     lastTransmitt = millis();
     counterPartPresent = isActive = true;
-    
-    if (outCmdLength != 0) {
-        *length = outCmdLength;    
-    } else{
-        *length = 1;
-        hitlDisplayPortOutCmd[0] = HITL_OSD_DRAW_SCREEN;
+    *length = 0;
+    while (cmdBufferHead != cmdBufferTail && *length < HITL_DP_MAX_SEND_SIZE)
+    {  
+       outBuf[(*length)++] = cmdBuffer[cmdBufferTail];
+       cmdBufferTail = (cmdBufferTail + 1) % HITL_DP_OUT_BUF_SIZE;
     }
-    outCmdLength = 0;
-    return hitlDisplayPortOutCmd;
+
+    if (*length == 0) {
+        *length = 1;
+        outBuf[0] = HITL_OSD_DRAW_SCREEN;
+    }
+    
+    return outBuf;
 }
 
 #endif

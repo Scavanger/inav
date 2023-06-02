@@ -63,7 +63,6 @@
 #define USE_BARO
 #define USE_PITOT_FAKE
 #define USE_IMU_FAKE
-#define USE_FAKE_BARO
 #define USE_FAKE_MAG
 #define USE_GPS_FAKE
 #define USE_RANGEFINDER_FAKE

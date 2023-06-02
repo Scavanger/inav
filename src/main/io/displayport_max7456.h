@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define MAX7456_DISPLAYPORT_TYPE "MAX7456"
+
 typedef struct displayPort_s displayPort_t;
 
 #include "drivers/osd.h"

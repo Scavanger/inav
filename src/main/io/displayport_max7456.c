@@ -193,7 +193,7 @@ displayPort_t *max7456DisplayPortInit(const videoSystem_e videoSystem)
     max7456Init(videoSystem);
     displayInit(&max7456DisplayPort, &max7456VTable);
     resync(&max7456DisplayPort);
-    max7456DisplayPort.displayPortType = "MAX7456";
+    max7456DisplayPort.displayPortType = MAX7456_DISPLAYPORT_TYPE;
     return &max7456DisplayPort;
 }
 #endif // USE_MAX7456

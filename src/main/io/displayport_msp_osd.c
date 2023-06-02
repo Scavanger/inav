@@ -477,11 +477,11 @@ displayPort_t* mspOsdDisplayPortInit(const videoSystem_e videoSystem)
         displayInit(&mspOsdDisplayPort, &mspOsdVTable);
 
         if (osdVideoSystem == VIDEO_SYSTEM_BFCOMPAT) {
-            mspOsdDisplayPort.displayPortType = "MSP DisplayPort: BetaFlight Compatability mode";
+            mspOsdDisplayPort.displayPortType = MSP_OSD_DISPLAYPORT_TYPE_BFCOMPAT;
         } else if (osdVideoSystem == VIDEO_SYSTEM_BFCOMPAT_HD) {
-            mspOsdDisplayPort.displayPortType = "MSP DisplayPort: BetaFlight Compatability mode (HD)";
+            mspOsdDisplayPort.displayPortType = MSP_OSD_DISPLAYPORT_TYPE_BFCOMPAT_HD;
         } else {
-            mspOsdDisplayPort.displayPortType = "MSP DisplayPort";
+            mspOsdDisplayPort.displayPortType = MSP_OSD_DISPLAYPORT_TYPE;
         }
 
         return &mspOsdDisplayPort;

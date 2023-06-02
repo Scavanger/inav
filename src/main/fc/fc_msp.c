@@ -93,6 +93,7 @@
 #include "io/vtx.h"
 #include "io/vtx_string.h"
 #include "io/gps_private.h"  //for MSP_SIMULATOR
+#include "io/displayport_max7456.h"
 #include "io/displayport_hitl.h"
 
 #include "msp/msp.h"
@@ -3251,13 +3252,19 @@ static bool mspParameterGroupsCommand(sbuf_t *dst, sbuf_t *src)
 }
 
 #ifdef USE_SIMULATOR
-bool isOSDTypeSupportedBySimulator(void)
+uint8_t getOsdTypeSupportedBySimulator(void)
 {
 #ifdef USE_OSD
 	displayPort_t *osdDisplayPort = osdGetDisplayPort();
-	return (osdDisplayPort && osdDisplayPort->cols == 60 && osdDisplayPort->rows == 22);
+	if (strcmp(osdDisplayPort->displayPortType, MAX7456_DISPLAYPORT_TYPE) == 0) {
+        return 2;
+    } else if (strcmp(osdDisplayPort->displayPortType, HITL_DISPLAYPORT_TYPE) == 0)
+        return 1;
+    else {
+        return 0;
+    } 
 #else
-    return false;
+    return 0;
 #endif
 }
 
@@ -3273,8 +3280,7 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 	static uint8_t osdPos_y = 0;
 	static uint8_t osdPos_x = 0;
 
-
-	if (isOSDTypeSupportedBySimulator())
+	if (getOsdTypeSupportedBySimulator() == 2)
 	{
 		displayPort_t *osdDisplayPort = osdGetDisplayPort();
 
@@ -3469,11 +3475,10 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 
 #ifdef USE_SIMULATOR
     case MSP_SIMULATOR:
-	{
-        uint8_t simMspVersion = sbufReadU8(src); // Get the Simulator MSP version
+		tmp_u8 = sbufReadU8(src); // Get the Simulator MSP version
         
         // Check the MSP version of simulator
-		if (simMspVersion < SIMULATOR_MSP_LEAGCY_VERSION) {
+		if (tmp_u8 != SIMULATOR_MSP_VERSION) {
             break;
         }
 
@@ -3531,6 +3536,7 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 						gpsSol.flags.validVelNE = true;
 						gpsSol.flags.validVelD = true;
 						gpsSol.flags.validEPE = true;
+                        gpsSol.flags.validTime = false;
 
 						gpsSol.llh.lat = sbufReadU32(src);
 						gpsSol.llh.lon = sbufReadU32(src);
@@ -3586,7 +3592,7 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 				if (sensors(SENSOR_MAG)) {
 					mag.magADC[X] = ((int16_t)sbufReadU16(src)) / 20;  // 16000 / 20 = 800uT
 					mag.magADC[Y] = ((int16_t)sbufReadU16(src)) / 20;
-					mag.magADC[Z] = ((int16_t)sbufReadU16(src)) / 20;
+					mag.magADC[Y] = ((int16_t)sbufReadU16(src)) / 20;   //note that mag failure is simulated by setting all readings to zero
 				} else {
 					sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
 				}
@@ -3602,8 +3608,16 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 #endif
 
                 if (SIMULATOR_HAS_OPTION(HITL_AIRSPEED)) {
-                    simulatorData.airSpeed = sbufReadU16(src);   
-			    }
+                    simulatorData.airSpeed = sbufReadU16(src);
+			    } else {
+                    if (SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
+                        sbufReadU16(src); 
+                    }
+                }
+
+                if (SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
+                    simulatorData.flags |= ((uint16_t)sbufReadU8(src)) << 8;
+                }
 			} else {
 				DISABLE_STATE(GPS_FIX);
 			}
@@ -3623,7 +3637,7 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 			((mixerConfig()->platformType == PLATFORM_AIRPLANE) ? 128 : 0) |
 			(ARMING_FLAG(ARMED) ? 64 : 0) |
 			(!feature(FEATURE_OSD) ? 32: 0) |
-			(!isOSDTypeSupportedBySimulator() ? 16 : 0);
+            (getOsdTypeSupportedBySimulator() << 3);
 
 		sbufWriteU8(dst, tmp_u8);
 		sbufWriteU32(dst, debug[simulatorData.debugIndex]);
@@ -3633,23 +3647,22 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 		sbufWriteU16(dst, attitude.values.yaw);
 
 #ifdef USE_OSD
-        if (hitlOsdConfig()->useHdOSD && SIMULATOR_HAS_OPTION(HITL_HD_OSD)) {
-            uint16_t osdCmdLength = 0;
-            uint8_t *osdCmd = hitlDisplayportGetOutCmd(&osdCmdLength);
-            if (osdCmdLength) {
-                sbufWriteU16(dst, osdCmdLength);
-                sbufWriteData(dst, osdCmd, osdCmdLength);
+        if (hitlOsdConfig()->useHdOSD) {
+            if (SIMULATOR_HAS_OPTION(HITL_HD_OSD)) {
+                uint16_t osdCmdLength = 0;
+                uint8_t *osdCmd = hitlDisplayportGetOutCmd(&osdCmdLength);
+                if (osdCmdLength) {
+                    sbufWriteU16(dst, osdCmdLength);
+                    sbufWriteData(dst, osdCmd, osdCmdLength);
+                }
+            } else {
+                sbufWriteU8(dst, 0xff); // Analog displayport isn't initialised, no fallback
             }
         } else {
-            if (simMspVersion == SIMULATOR_MSP_LEAGCY_VERSION) {
-                mspWriteSimulatorOSD(dst);
-            } else {
-                sbufWriteU16(dst, 0);
-            }
+            mspWriteSimulatorOSD(dst);
         }
-    }
 #else
-    sbufWriteU16(dst, 0);
+    sbufWriteU8(dst, 0xff);
 #endif
         *ret = MSP_RESULT_ACK;
         break;

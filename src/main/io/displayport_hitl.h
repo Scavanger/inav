@@ -27,6 +27,8 @@
 #include "drivers/osd.h"
 #include "msp/msp_serial.h"
 
+#define HITL_DISPLAYPORT_TYPE "HITL"
+
 typedef struct displayPort_s displayPort_t;
 
 typedef struct hitlOsdConfig_s

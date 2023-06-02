@@ -20,6 +20,8 @@
 #include "config/parameter_group.h"
 #include "drivers/display.h"
 
+#define MSP_DISPLAYPORT_TYPE "MSP"
+
 // MSP Display Port commands
 typedef enum {
     MSP_DP_HEARTBEAT = 0,       // Ensure display is not released, and prevent 'disconnected' status

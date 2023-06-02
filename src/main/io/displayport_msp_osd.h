@@ -27,6 +27,10 @@
 #include "drivers/osd.h"
 #include "msp/msp_serial.h"
 
+#define MSP_OSD_DISPLAYPORT_TYPE                "MSP DisplayPort"
+#define MSP_OSD_DISPLAYPORT_TYPE_BFCOMPAT       "MSP DisplayPort: BetaFlight Compatability mode"
+#define MSP_OSD_DISPLAYPORT_TYPE_BFCOMPAT_HD    "MSP DisplayPort: BetaFlight Compatability mode (HD)"
+
 typedef struct displayPort_s displayPort_t;
 
 displayPort_t *mspOsdDisplayPortInit(const videoSystem_e videoSystem);
