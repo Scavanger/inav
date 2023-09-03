@@ -61,6 +61,23 @@ It is recommened to use GPS fix estimation without magnethometer as last resort 
 It is up to user to estimate the risk of fly-away.
 
 
+# Navigation without magnethometer
+
+Without magnethometer, navigation accuracy is very poor. The problem is heading drift. 
+
+The longer plane flies without magnethometer or GPS, the bigger is course estimation error.
+
+After few minutes and few turns, "North" direction estimation can be completely broken.
+In general, accuracy is enought to perform RTH U-turn when both RC controls and GPS are lost, and roughtly keep RTH direction in areas with accasional GPS outages.
+
+![image](https://github.com/RomanLut/inav/assets/11955117/3d5c5d10-f43a-45f9-a647-af3cca87c4da)
+
+(purple line - estimated position, black line - real position).
+
+It is recommened to use GPS fix estimation without magnethometer as last resort only. For example, if plane is flying above lake, landing means loss of plane. With GPS Fix estimation, plane will try to do RTH in very rought direction, instead of landing.
+
+It is up to user to estimate the risk of fly-away.
+
 
 # Settings
 
