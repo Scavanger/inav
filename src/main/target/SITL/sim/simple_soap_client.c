@@ -33,6 +33,9 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <sys/select.h>
+# include <netinet/in.h>
+# include <netdb.h>
+# include <arpa/inet.h>
 
 #include "simple_soap_client.h"
 
@@ -50,7 +53,7 @@ bool soapClientConnect(soap_client_t *client, const char *address, int port)
     if (setsockopt(client->sockedFd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
         return false;
     }
-    
+
     client->socketAddr.sin_family = AF_INET;
     client->socketAddr.sin_port = htons(port);
     client->socketAddr.sin_addr.s_addr = inet_addr(address);
@@ -79,7 +82,7 @@ void soapClientSendRequestVa(soap_client_t *client, const char* action, const ch
         return;
     }
 
-    char* requestBody;  
+    char* requestBody;
     if (vasprintf(&requestBody, fmt, va) < 0) {
         return;
     }
@@ -89,16 +92,16 @@ void soapClientSendRequestVa(soap_client_t *client, const char* action, const ch
          action, (unsigned)strlen(requestBody), requestBody) < 0) {
             return;
          }
-    
+
     send(client->sockedFd, request, strlen(request), 0);
 }
 
 void soapClientSendRequest(soap_client_t *client, const char* action, const char *fmt, ...)
 {
     va_list va;
-    
+
     va_start(va, fmt);
-    soapClientSendRequestVa(client, action, fmt, va);   
+    soapClientSendRequestVa(client, action, fmt, va);
     va_end(va);
 }
 
@@ -159,10 +162,9 @@ char* soapClientReceive(soap_client_t *client)
         if (size2 <= 0) {
             return NULL;
         }
-        size += size2;       
+        size += size2;
     }
 
     recBuffer[size] = '\0';
     return strdup(body);
 }
-
