@@ -191,3 +191,4 @@ float bellCurve(const float x, const float curveWidth);
 float fast_fsqrtf(const double value);
 float calc_length_pythagorean_2D(const float firstElement, const float secondElement);
 float calc_length_pythagorean_3D(const float firstElement, const float secondElement, const float thirdElement);
+float calc_angle_triangle(float sideA, float sideB, float sideC);

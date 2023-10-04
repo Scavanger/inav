@@ -48,6 +48,7 @@
 
 #include "navigation/navigation.h"
 #include "navigation/navigation_private.h"
+#include "navigation/navigation_geozone.h"
 
 #include "programming/logic_condition.h"
 
@@ -260,6 +261,10 @@ static int8_t loiterDirection(void) {
 
     if (IS_RC_MODE_ACTIVE(BOXLOITERDIRCHN)) {
         dir *= -1;
+    }
+
+    if (geozone.loiterDir != 0) {
+        dir = geozone.loiterDir;
     }
 
     return dir;
