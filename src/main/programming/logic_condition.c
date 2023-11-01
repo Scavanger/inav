@@ -833,6 +833,10 @@ static int logicConditionGetFlightOperandValue(int operand) {
             return rangefinderGetLatestRawAltitude();
             break; 
 
+        case LOGIC_CONDITION_OPERAND_FLIGHT_FW_LAND_STATE:
+            return posControl.fwLandState;
+            break;
+
         default:
             return 0;
             break;
