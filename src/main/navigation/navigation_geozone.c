@@ -1228,7 +1228,7 @@ void geozoneUpdate(timeUs_t curentTimeUs)
         isInitalised = true;
     }
           
-    if (!ARMING_FLAG(ARMED) || !isGPSHeadingValid() || !isInitalised || activeGeoZonesCount == 0)  {
+    if (!ARMING_FLAG(ARMED) || !isGPSHeadingValid() || !isInitalised || activeGeoZonesCount == 0 || ((STATE(FIXED_WING_LEGACY) && (navGetCurrentStateFlags() & NAV_CTL_LAUNCH))) ) {
         noZoneRTH = false;
         return;
     } 
