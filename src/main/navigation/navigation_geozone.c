@@ -1176,6 +1176,7 @@ static void geoZoneInit(void)
     }
 
     updateCurrentZones();
+    uint8_t newActiveZoneCount = activeGeoZonesCount;
     for (uint8_t i = 0; i < activeGeoZonesCount; i++) {
         if (!geozone.insideFz) {
             // Deactivate all inclusive geozones with distance > GEOZONE_INCLUSE_IGNORE_DISTANCE
@@ -1195,12 +1196,13 @@ static void geoZoneInit(void)
                 }
                 if (minDistanceToZone > GEOZONE_INCLUSE_IGNORE_DISTANCE) {
                     activeGeoZones[i].enable = false;
-                    activeGeoZonesCount--;
+                    newActiveZoneCount--;
                 }
             }
         }    
     }
 
+    activeGeoZonesCount = newActiveZoneCount;
     if (activeGeoZonesCount == 0) {
         setTaskEnabled(TASK_GEOZONE, false);
         geozoneIsEnabled = false;
