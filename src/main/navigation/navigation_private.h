@@ -466,6 +466,7 @@ typedef struct {
     bool fwLandWpReached;
     fwAutolandWayppoints_t fwLandCurrentWp;
     bool fwLandAborted;
+    bool fwLandWp;
     fwAutolandState_t fwLandState;
 
     /* Internals & statistics */
