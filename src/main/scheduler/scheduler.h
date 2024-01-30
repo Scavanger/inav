@@ -119,6 +119,9 @@ typedef enum {
 #ifdef USE_IRLOCK
     TASK_IRLOCK,
 #endif
+#if defined (USE_GEOZONE) && defined(USE_GPS)
+    TASK_GEOZONE,
+#endif
     /* Count of real tasks */
     TASK_COUNT,
 

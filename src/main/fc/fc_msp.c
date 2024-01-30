@@ -103,6 +103,7 @@
 #include "navigation/navigation.h"
 #include "navigation/navigation_private.h" //for MSP_SIMULATOR
 #include "navigation/navigation_pos_estimator_private.h" //for MSP_SIMULATOR
+#include "navigation/navigation_geozone.h"
 
 #include "rx/rx.h"
 #include "rx/msp.h"
@@ -1660,6 +1661,32 @@ static mspResult_e mspFcSafeHomeOutCommand(sbuf_t *dst, sbuf_t *src)
 }
 #endif
 
+
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+static mspResult_e mspFcGeozoneOutCommand(sbuf_t *dst, sbuf_t *src)
+{
+    const uint8_t idx = sbufReadU8(src);
+    if (idx < MAX_GEOZONES_IN_CONFIG) {
+        sbufWriteU8(dst, geoZonesConfig(idx)->type);
+        sbufWriteU8(dst, geoZonesConfig(idx)->shape);
+        sbufWriteU32(dst, geoZonesConfig(idx)->minAltitude);
+        sbufWriteU32(dst, geoZonesConfig(idx)->maxAltitude);
+        sbufWriteU8(dst, geoZonesConfig(idx)->fenceAction);
+        sbufWriteU8(dst, geoZonesConfig(idx)->vertexCount);
+        sbufWriteU8(dst, idx);
+        for (uint8_t i = 0; i < MAX_VERTICES_IN_CONFIG; i++) {
+            if (geoZoneVertices(i)->zoneId == idx) {
+                sbufWriteU8(dst, geoZoneVertices(i)->idx);
+                sbufWriteU32(dst, geoZoneVertices(i)->lat);
+                sbufWriteU32(dst, geoZoneVertices(i)->lon);
+            }
+        }
+        return MSP_RESULT_ACK;
+    } else {
+        return MSP_RESULT_ERROR;
+    }
+}
+#endif
 static mspResult_e mspFwApproachOutCommand(sbuf_t *dst, sbuf_t *src)
 {
     const uint8_t idx = sbufReadU8(src);
@@ -3156,6 +3183,57 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         break;
 #endif
 
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+
+    case MSP2_INAV_SET_GEOZONES:
+
+        if (dataSize >= 13) {
+            uint8_t i;
+            if (!sbufReadU8Safe(&i, src) || i >= MAX_GEOZONES_IN_CONFIG) {
+                return MSP_RESULT_ERROR;
+            }
+            
+            geozoneResetVertices(i, -1);
+            geoZonesConfigMutable(i)->type = sbufReadU8(src); 
+            geoZonesConfigMutable(i)->shape = sbufReadU8(src);
+            geoZonesConfigMutable(i)->minAltitude = sbufReadU32(src);
+            geoZonesConfigMutable(i)->maxAltitude = sbufReadU32(src);   
+            geoZonesConfigMutable(i)->fenceAction = sbufReadU8(src);
+            
+            uint8_t verticesCount = sbufReadU8(src);
+            if (verticesCount >= MAX_VERTICES_IN_CONFIG) {
+                return MSP_RESULT_ERROR;
+            }
+
+            geoZonesConfigMutable(i)->vertexCount = verticesCount;
+
+            for (uint8_t j = 0; j < verticesCount; j++) {
+                uint8_t vertexIDX = sbufReadU8(src);
+                if (vertexIDX < MAX_VERTICES_IN_CONFIG)
+                {
+                    int16_t vertexConfigIdx = -1;
+                    for (uint8_t i = 0; i < MAX_VERTICES_IN_CONFIG; i++) {
+                        if (geoZoneVertices(i)->zoneId == -1) {
+                            vertexConfigIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (vertexConfigIdx >= 0) {                  
+                        geoZoneVerticesMutable(vertexConfigIdx)->zoneId = i;
+                        geoZoneVerticesMutable(vertexConfigIdx)->idx = vertexIDX;
+                        geoZoneVerticesMutable(vertexConfigIdx)->lat = sbufReadU32(src);
+                        geoZoneVerticesMutable(vertexConfigIdx)->lon = sbufReadU32(src);
+                    }
+                }
+            }
+        } else {
+            return MSP_RESULT_ERROR;
+        }
+
+    break;
+#endif
+
     case MSP2_INAV_SET_FW_APPROACH:
         if (dataSize == 15) {
             uint8_t i;
@@ -3689,6 +3767,13 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 #ifdef USE_SAFE_HOME
     case MSP2_INAV_SAFEHOME:
         *ret = mspFcSafeHomeOutCommand(dst, src);
+        break;
+#endif
+
+
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+    case MSP2_INAV_GEOZONES:
+        *ret = mspFcGeozoneOutCommand(dst, src);
         break;
 #endif
     case MSP2_INAV_FW_APPROACH:

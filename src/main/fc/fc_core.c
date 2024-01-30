@@ -73,6 +73,7 @@
 #include "msp/msp_serial.h"
 
 #include "navigation/navigation.h"
+#include "navigation/navigation_geozone.h"
 
 #include "rx/rx.h"
 #include "rx/msp.h"
@@ -267,6 +268,14 @@ static void updateArmingStatus(void)
         else {
             DISABLE_ARMING_FLAG(ARMING_DISABLED_NAVIGATION_UNSAFE);
         }
+
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+        if (geozoneIsInsideNFZ()) {
+            ENABLE_ARMING_FLAG(ARMING_DISABLED_GEOZONE);
+        } else {
+            DISABLE_ARMING_FLAG(ARMING_DISABLED_GEOZONE);
+        }
+#endif
 
 #if defined(USE_MAG)
         /* CHECK: */

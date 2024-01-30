@@ -113,6 +113,8 @@ typedef struct navigationFlags_s {
     bool rthTrackbackActive;                // Activation status of RTH trackback
     bool wpTurnSmoothingActive;             // Activation status WP turn smoothing
     bool manualEmergLandActive;             // Activation status of manual emergency landing
+    bool sendToActive;
+    bool forcedPosholdActive;
 } navigationFlags_t;
 
 typedef struct {
@@ -157,6 +159,7 @@ typedef enum {
     NAV_FSM_EVENT_SWITCH_TO_COURSE_HOLD,
     NAV_FSM_EVENT_SWITCH_TO_CRUISE,
     NAV_FSM_EVENT_SWITCH_TO_COURSE_ADJ,
+    NAV_FSM_EVENT_SWITCH_TO_SEND_TO,
     NAV_FSM_EVENT_SWITCH_TO_MIXERAT,
     NAV_FSM_EVENT_SWITCH_TO_NAV_STATE_FW_LANDING,
 
@@ -232,6 +235,10 @@ typedef enum {
     NAV_PERSISTENT_ID_UNUSED_4                                  = 37, // was NAV_STATE_WAYPOINT_HOVER_ABOVE_HOME
     NAV_PERSISTENT_ID_RTH_TRACKBACK                             = 38,
 
+    NAV_PERSISTENT_ID_SEND_TO_INITALIZE                         = 39,
+    NAV_PERSISTENT_ID_SEND_TO_IN_PROGRES                        = 40,
+    NAV_PERSISTENT_ID_SEND_TO_FINISHED                          = 41
+
     NAV_PERSISTENT_ID_MIXERAT_INITIALIZE                        = 39,
     NAV_PERSISTENT_ID_MIXERAT_IN_PROGRESS                       = 40,
     NAV_PERSISTENT_ID_MIXERAT_ABORT                             = 41,
@@ -287,6 +294,10 @@ typedef enum {
     NAV_STATE_CRUISE_INITIALIZE,
     NAV_STATE_CRUISE_IN_PROGRESS,
     NAV_STATE_CRUISE_ADJUSTING,
+
+    NAV_STATE_SEND_TO_INITALIZE,
+    NAV_STATE_SEND_TO_IN_PROGESS,
+    NAV_STATE_SEND_TO_FINISHED,
     
     NAV_STATE_FW_LANDING_CLIMB_TO_LOITER,
     NAV_STATE_FW_LANDING_LOITER,
@@ -398,6 +409,15 @@ typedef enum {
     RTH_HOME_FINAL_LAND,            // Home position and altitude
 } rthTargetMode_e;
 
+typedef struct navSendTo_s {
+    fpVector3_t targetPos;
+    uint16_t altitudeTargetRange;   // 0 for only "2D" 
+    uint32_t targetRange;
+    bool lockSticks;
+    uint32_t lockStickTime;
+    timeMs_t startTime;
+} navSendTo_t;
+
 typedef struct {
     fpVector3_t nearestSafeHome;    // The nearestSafeHome found during arming
     uint32_t    distance;           // distance to the nearest safehome
@@ -470,6 +490,8 @@ typedef struct {
     int8_t                      activeRthTBPointIndex;
     int8_t                      rthTBWrapAroundCounter;     // stores trackpoint array overwrite index position
 
+    navSendTo_t                  sendTo;
+
     /* Fixedwing autoland */
     fwLandState_t fwLandState;
 
@@ -494,10 +516,15 @@ extern multicopterPosXyCoefficients_t multicopterPosXyCoefficients;
 
 /* Internally used functions */
 const navEstimatedPosVel_t * navGetCurrentActualPositionAndVelocity(void);
+void navProcessFSMEvents(navigationFSMEvent_t injectedEvent);
+navigationFSMEvent_t selectNavEventFromBoxModeInput(void);
 
 bool isThrustFacingDownwards(void);
+void calculateFarAwayTarget(fpVector3_t * farAwayPos, int32_t bearing, int32_t distance);
 uint32_t calculateDistanceToDestination(const fpVector3_t * destinationPos);
 int32_t calculateBearingToDestination(const fpVector3_t * destinationPos);
+int32_t calculateBearingBetweenLocalPositions(const fpVector3_t * startPos, const fpVector3_t * endPos);
+float calculateDistance2(const fpVector2_t* startPos, const fpVector2_t* destinationPos);
 
 bool isLandingDetected(void);
 void resetLandingDetector(void);

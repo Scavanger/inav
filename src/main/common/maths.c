@@ -592,3 +592,8 @@ void arm_mult_f32(
 }
 
 #endif
+
+float calc_angle_triangle(float sideA, float sideB, float sideC) 
+{
+	return RADIANS_TO_DEGREES(acos_approx((sq(sideB) + sq(sideC) - sq(sideA)) / (2 * sideB * sideC)));
+}

@@ -93,6 +93,7 @@
 
 #include "navigation/navigation.h"
 #include "navigation/navigation_private.h"
+#include "navigation/navigation_geozone.h"
 
 #include "rx/rx.h"
 #include "rx/msp_override.h"
@@ -920,6 +921,8 @@ static const char * osdArmingDisabledReasonMessage(void)
             return OSD_MESSAGE_STR(OSD_MSG_NO_PREARM);
         case ARMING_DISABLED_DSHOT_BEEPER:
             return OSD_MESSAGE_STR(OSD_MSG_DSHOT_BEEPER);
+        case ARMING_DISABLED_GEOZONE:
+            return OSD_MESSAGE_STR(OSD_MSG_NFZ);
             // Cases without message
         case ARMING_DISABLED_LANDING_DETECTED:
             FALLTHROUGH;
@@ -2250,7 +2253,9 @@ static bool osdDrawSingleElement(uint8_t item)
             char *p = "ACRO";
             if (isFwLandInProgess()) 
                 p = "LAND";
-            else if (FLIGHT_MODE(FAILSAFE_MODE))
+            else if (FLIGHT_MODE(NAV_SEND_TO)) {
+                p = "AUTO";
+            } else if (FLIGHT_MODE(FAILSAFE_MODE))
                 p = "!FS!";
             else if (FLIGHT_MODE(MANUAL_MODE))
                 p = "MANU";
@@ -3573,6 +3578,50 @@ static bool osdDrawSingleElement(uint8_t item)
             break;
         }
 
+#if defined(USE_GEOZONE) && defined(USE_GPS)
+        case OSD_COURSE_TO_FENCE:
+        {
+            if (navigationPositionEstimateIsHealthy()) {
+                int16_t panHomeDirOffset = 0;
+                if (!(osdConfig()->pan_servo_pwm2centideg == 0)){
+                    panHomeDirOffset = osdGetPanServoOffset();
+                }
+                int16_t flightDirection = STATE(AIRPLANE) ? CENTIDEGREES_TO_DEGREES(posControl.actualState.cog) : DECIDEGREES_TO_DEGREES(osdGetHeading());
+                int direction = CENTIDEGREES_TO_DEGREES(geozone.directionToNearestZone) - flightDirection + panHomeDirOffset;
+                osdDrawDirArrow(osdDisplayPort, osdGetDisplayPortCanvas(), OSD_DRAW_POINT_GRID(elemPosX, elemPosY), direction);            
+            } else {
+                TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
+                displayWriteCharWithAttr(osdDisplayPort, elemPosX, elemPosY, '-', elemAttr);
+            }
+        break;
+        }  
+        
+        case OSD_H_DIST_TO_FENCE:
+        {
+            if (navigationPositionEstimateIsHealthy()) {
+                char buff2[12];
+                osdFormatDistanceSymbol(buff2, geozone.distanceHorToNearestZone, 0);
+                tfp_sprintf(buff, "FD  %s", buff2 );
+            } else {
+                strcpy(buff, "FD ---");
+            }
+        }
+        break;
+
+        case OSD_V_DIST_TO_FENCE:
+        {
+            if (navigationPositionEstimateIsHealthy()) {
+                char buff2[12];
+                osdFormatAltitudeSymbol(buff2, abs(geozone.distanceVertToNearestZone));
+                tfp_sprintf(buff, "FD %s", buff2);
+                displayWriteCharWithAttr(osdDisplayPort, elemPosX + 8, elemPosY, geozone.distanceVertToNearestZone < 0 ? SYM_ARROW_DOWN : SYM_ARROW_UP, elemAttr);
+            } else {
+                strcpy(buff, "FD ---");
+            }
+
+            break;
+        }
+#endif
     default:
         return false;
     }
@@ -5150,6 +5199,11 @@ textAttributes_t osdGetSystemMessage(char *buff, size_t buff_size, bool isCenter
                     messages[messageCount++] = safehomeMessage;
                 }
 #endif
+
+                if (geozone.avoidInRTHInProgress) {
+                    messages[messageCount++] = OSD_MSG_AVOID_ZONES_RTH;
+                }
+
                 if (FLIGHT_MODE(FAILSAFE_MODE)) {
                     // In FS mode while being armed too
                     const char *failsafePhaseMessage = osdFailsafePhaseMessage();
@@ -5212,6 +5266,64 @@ textAttributes_t osdGetSystemMessage(char *buff, size_t buff_size, bool isCenter
                     if (STATE(LANDING_DETECTED)) {
                         messages[messageCount++] = OSD_MESSAGE_STR(OSD_MSG_LANDED);
                     }
+
+                    char buf[12], buf1[12];
+                    switch (geozone.messageState) {
+                        case GEOZONE_MESSAGE_STATE_NFZ:
+                            messages[messageCount++] = OSD_MSG_NFZ;
+                            break;
+                        case GEOZONE_MESSAGE_STATE_LEAVING_FZ:      
+                            osdFormatDistanceSymbol(buf, geozone.distanceToZoneBorder3d, 0);
+                            tfp_sprintf(messageBuf, OSD_MSG_LEAVING_FZ, buf);
+                            messages[messageCount++] = messageBuf;
+                            break;
+                        case GEOZONE_MESSAGE_STATE_OUTSIDE_FZ:
+                            messages[messageCount++] = OSD_MSG_OUTSIDE_FZ;
+                            break;
+                        case GEOZONE_MESSAGE_STATE_ENTERING_NFZ:
+                            osdFormatDistanceSymbol(buf, geozone.distanceToZoneBorder3d, 0);
+                            if (geozone.zoneInfo == INT32_MAX) {
+                                tfp_sprintf(buf1, "%s%c", "INF", SYM_ALT_M);
+                            } else {
+                                osdFormatAltitudeSymbol(buf1, geozone.zoneInfo);
+                            }
+                            tfp_sprintf(messageBuf, OSD_MSG_ENTERING_NFZ, buf, buf1);
+                            messages[messageCount++] = messageBuf;
+                            break;
+                        case GEOZONE_MESSAGE_STATE_AVOIDING_FB:
+                            messages[messageCount++] = OSD_MSG_AVOIDING_FB;
+                            if (!posControl.sendTo.lockSticks) {
+                                messages[messageCount++] = OSD_MSG_ABORT_FB;
+                            }
+                            break;
+                        case GEOZONE_MESSAGE_STATE_RETURN_TO_ZONE:
+                            messages[messageCount++] = OSD_MSG_RETURN_TO_ZONE;
+                            if (!posControl.sendTo.lockSticks) {
+                                messages[messageCount++] = OSD_MSG_ABORT_FB;
+                            }
+                            break;
+                        case GEOZONE_MESSAGE_STATE_AVOIDING_ALTITUDE_BREACH:
+                            messages[messageCount++] = OSD_MSG_AVOIDING_ALT_BREACH;
+                            if (!posControl.sendTo.lockSticks) {
+                                messages[messageCount++] = OSD_MSG_ABORT_FB;
+                            }
+                            break;
+                        case GEOZONE_MESSAGE_STATE_FLYOUT_NFZ:
+                            messages[messageCount++] = OSD_MSG_FLYOUT_NFZ;
+                            if (!posControl.sendTo.lockSticks) {
+                                messages[messageCount++] = OSD_MSG_ABORT_FB;
+                            }
+                            break;
+                        case GEOZONE_MESSAGE_STATE_LOITER:
+                            messages[messageCount++] = OSD_MSG_AVOIDING_FB;
+                            if (!geozone.sticksLocked) {
+                                messages[messageCount++] = OSD_MSG_ABORT_FB;
+                            }
+                            break;         
+                        case GEOZONE_MESSAGE_STATE_NONE:
+                            break;
+                    }
+                    
                 }
             }
         } else if (ARMING_FLAG(ARMING_DISABLED_ALL_FLAGS)) {
