@@ -160,7 +160,8 @@ static timeMs_t linearDescentMessageMs  = 0;
 typedef enum {
     OSD_SAVE_MESSAGE_NONE,
     OSD_SAVE_MESSAGE_WAITING,
-    OSD_SAVE_MESSAGE_SAVING
+    OSD_SAVE_MESSAGE_SAVING,
+    OSD_SAVE_MESSAGE_SAVED
 } osd_saveMessage_e;
 
 static timeMs_t notify_settings_saved   = 0;
@@ -220,6 +221,11 @@ static bool osdDisplayHasCanvas;
 PG_REGISTER_WITH_RESET_TEMPLATE(osdConfig_t, osdConfig, PG_OSD_CONFIG, 9);
 PG_REGISTER_WITH_RESET_FN(osdLayoutsConfig_t, osdLayoutsConfig, PG_OSD_LAYOUTS_CONFIG, 1);
 
+void osdSaveProcessAborted(void) {
+    notify_settings_saved = 0;
+    savingSettings = OSD_SAVE_MESSAGE_NONE;
+}
+
 void osdSaveWaitingProcess(void) {
     savingSettings = OSD_SAVE_MESSAGE_WAITING;
 }
@@ -229,11 +235,9 @@ void osdStartedSaveProcess(void) {
 }
 
 void osdShowEEPROMSavedNotification(void) {
-    savingSettings = OSD_SAVE_MESSAGE_NONE;
+    savingSettings = OSD_SAVE_MESSAGE_SAVED;
     notify_settings_saved = millis() + 5000;
 }
-
-
 
 bool osdDisplayIsPAL(void)
 {
@@ -4665,7 +4669,8 @@ static void osdShowStats(bool isSinglePageStatsCompatible, uint8_t page)
     } else if (notify_settings_saved > 0) {
         if (millis() > notify_settings_saved) {
             notify_settings_saved = 0;
-        } else {
+            savingSettings = OSD_SAVE_MESSAGE_NONE;
+        } else if (savingSettings == OSD_SAVE_MESSAGE_SAVED) {
             displayWrite(osdDisplayPort, statNameX, top++, OSD_MESSAGE_STR(OSD_MSG_SETTINGS_SAVED));
         }
     }
@@ -5402,7 +5407,8 @@ textAttributes_t osdGetSystemMessage(char *buff, size_t buff_size, bool isCenter
         } else if (notify_settings_saved > 0) {
             if (millis() > notify_settings_saved) {
                 notify_settings_saved = 0;
-            } else {
+                savingSettings = OSD_SAVE_MESSAGE_NONE;
+            } else if (savingSettings == OSD_SAVE_MESSAGE_SAVED) {
                 messages[messageCount++] = OSD_MESSAGE_STR(OSD_MSG_SETTINGS_SAVED);
             }
         }
