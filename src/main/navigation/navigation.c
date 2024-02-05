@@ -1059,7 +1059,6 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_CRUISE]               = NAV_STATE_CRUISE_INITIALIZE,
         }
     },
-    },
 
     /** MIXER AUTOMATED TRANSITION mode, alternated althod ***************************************************/
     [NAV_STATE_MIXERAT_INITIALIZE] = {
@@ -1703,17 +1702,18 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HEAD_HOME(navigatio
         } else {
             fpVector3_t *tmpHomePos = rthGetHomeTargetPosition(RTH_HOME_ENROUTE_PROPORTIONAL);
 
-        if (isWaypointReached(tmpHomePos, 0)) {
-            // Successfully reached position target - update XYZ-position
-            setDesiredPosition(tmpHomePos, posControl.rthState.homePosition.heading, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING);
-            
-            if (navConfig()->general.flags.rth_use_linear_descent && posControl.rthState.rthLinearDescentActive)
-                posControl.rthState.rthLinearDescentActive = false;
+            if (isWaypointReached(tmpHomePos, 0)) {
+                // Successfully reached position target - update XYZ-position
+                setDesiredPosition(tmpHomePos, posControl.rthState.homePosition.heading, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING);
+                
+                if (navConfig()->general.flags.rth_use_linear_descent && posControl.rthState.rthLinearDescentActive)
+                    posControl.rthState.rthLinearDescentActive = false;
 
-            return NAV_FSM_EVENT_SUCCESS;       // NAV_STATE_RTH_HOVER_PRIOR_TO_LANDING
-        } else {
-            setDesiredPosition(tmpHomePos, 0, NAV_POS_UPDATE_Z | NAV_POS_UPDATE_XY);
-            return NAV_FSM_EVENT_NONE;
+                return NAV_FSM_EVENT_SUCCESS;       // NAV_STATE_RTH_HOVER_PRIOR_TO_LANDING
+            } else {
+                setDesiredPosition(tmpHomePos, 0, NAV_POS_UPDATE_Z | NAV_POS_UPDATE_XY);
+                return NAV_FSM_EVENT_NONE;
+            }
         }
     }
     /* Position sensor failure timeout - land */
@@ -2445,7 +2445,7 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_FW_LANDING_LOITER(navig
                 tmpPos.z = finalApproachAlt;
                 posControl.fwLandState.landWaypoints[FW_AUTOLAND_WP_FINAL_APPROACH] = tmpPos;
                 
-                calculateFarAwayPos(&tmpPos, &posControl.fwLandState.landWaypoints[FW_AUTOLAND_WP_FINAL_APPROACH], dir, navFwAutolandConfig()->approachLength / 2);
+                calculateFarAwayPos(&tmpPos, &posControl.fwLandState.landWaypoints[FW_AUTOLAND_WP_FINAL_APPROACH], dir, navConfig()->fw.loiter_radius * 2.5);
                 tmpPos.z = posControl.fwLandState.landAproachAltAgl;
                 posControl.fwLandState.landWaypoints[FW_AUTOLAND_WP_TURN] = tmpPos;
 
@@ -3284,21 +3284,11 @@ void updateHomePosition(void)
                     setHome = true;
                     break;
             }
-            if (setHome) {
-#if defined(USE_SAFE_HOME)
-                findNearestSafeHome();
-#endif
 
 #if defined(USE_GEOZONE) && defined (USE_GPS)
-                geozoneUpdateMaxHomeAltitude();
+            geozoneUpdateMaxHomeAltitude();
 #endif
-                setHomePosition(&posControl.actualState.abs.pos, posControl.actualState.yaw, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING, navigationActualStateHomeValidity());
-
-                // save the current location in case it is replaced by a safehome or HOME_RESET
-                original_rth_home.x = posControl.rthState.homePosition.pos.x;
-                original_rth_home.y = posControl.rthState.homePosition.pos.y;
-                original_rth_home.z = posControl.rthState.homePosition.pos.z;
-            }
+        
         }
     }
     else {
@@ -3698,11 +3688,9 @@ void updateClimbRateToAltitudeController(float desiredClimbRate, float targetAlt
          * In other words, when altitude is reached, allow it only to shrink
          * OR dont allow to shrik if current geozone has a minimum altitude
          */
-        if ((currentMaxAltitude > 0 && altitudeToUse >= currentMaxAltitude && desiredClimbRate > 0) || 
-            (geozone.currentzoneMinAltitude > 0 && altitudeToUse <= geozone.currentzoneMinAltitude && desiredClimbRate < 0 )) {
-        if (navConfig()->general.max_altitude > 0 && altitudeToUse >= navConfig()->general.max_altitude && desiredClimbRate > 0) {
+        if ((currentMaxAltitude > 0 && altitudeToUse >= currentMaxAltitude && desiredClimbRate > 0) || (geozone.currentzoneMinAltitude > 0 && altitudeToUse <= geozone.currentzoneMinAltitude && desiredClimbRate < 0 )) { 
             desiredClimbRate = 0;
-        } 
+        }
 
         if (STATE(FIXED_WING_LEGACY)) {
             // Fixed wing climb rate controller is open-loop. We simply move the known altitude target

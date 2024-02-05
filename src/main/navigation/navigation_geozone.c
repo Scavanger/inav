@@ -45,7 +45,7 @@
 
 #include "scheduler/scheduler.h"
 
-#include "navigation_geo_calculations.h"
+#include "navigation_geozone_calculations.h"
 #include "navigation/navigation_geozone.h"
 #include "navigation/navigation_private.h"
 
@@ -888,13 +888,13 @@ static void updateZoneInfos(void)
             aboveOrUnderZone = true;
         }
 
-        if (currentMaxAltitude > geoZoneConfig()->safeAltitudeDistance * 2) {
+        if (currentMaxAltitude > 0) {
             geozone.currentzoneMaxAltitude = currentMaxAltitude - geoZoneConfig()->safeAltitudeDistance;
         } else {
             geozone.currentzoneMaxAltitude = 0;
         }
 
-        if (currentMinAltitude < geoZoneConfig()->safeAltitudeDistance * 2) {
+        if (currentMinAltitude > 0) {
             geozone.currentzoneMinAltitude = currentMinAltitude + geoZoneConfig()->safeAltitudeDistance;
         } else {
             geozone.currentzoneMinAltitude = 0;
@@ -952,7 +952,7 @@ static void updateZoneInfos(void)
 void performeFenceAction(geoZoneRuntimeConfig_t *zone, fpVector3_t *intersection)
 {
     // Actions only for assisted modes now
-    if (isNonGeozoneModeFromBoxInput() || geozone.avoidInRTHInProgress || !geozone.insideFz || (calculateDistanceToDestination(intersection) > getDetectionDistance())) {
+    if (isNonGeozoneModeFromBoxInput() || geozone.avoidInRTHInProgress || (calculateDistanceToDestination(intersection) > getDetectionDistance())) {
         return;
     }
     
@@ -1160,7 +1160,7 @@ static void geoZoneInit(void)
         }
     }
     
-    if (geoZoneConfig()->nearestSafeHomeAsInclusivZone && safehome_index >= 0)
+    if (geoZoneConfig()->nearestSafeHomeAsInclusivZone && posControl.safehomeState.index >= 0)
     {       
         safeHomeGeozoneConfig.shape = GEOZONE_SHAPE_CIRCULAR;
         safeHomeGeozoneConfig.type = GEOZONE_TYPE_INCLUSIVE;
@@ -1170,7 +1170,7 @@ static void geoZoneInit(void)
         safeHomeGeozoneConfig.vertexCount = 1;
 
         activeGeoZones[activeGeoZonesCount].config = safeHomeGeozoneConfig;
-        activeGeoZones[activeGeoZonesCount].verticesLocal = (fpVector2_t*)&nearestSafeHome;
+        activeGeoZones[activeGeoZonesCount].verticesLocal = (fpVector2_t*)& posControl.safehomeState.nearestSafeHome;
         activeGeoZones[activeGeoZonesCount].radius = navConfig()->general.safehome_max_distance;
         activeGeoZonesCount++;
     }
@@ -1230,7 +1230,7 @@ void geozoneUpdate(timeUs_t curentTimeUs)
         isInitalised = true;
     }
           
-    if (!ARMING_FLAG(ARMED) || !isGPSHeadingValid() || !isInitalised || activeGeoZonesCount == 0 || ((STATE(FIXED_WING_LEGACY) && (navGetCurrentStateFlags() & NAV_CTL_LAUNCH))) ) {
+    if (!ARMING_FLAG(ARMED) || !isGPSHeadingValid() || !isInitalised || activeGeoZonesCount == 0 || isFwLandInProgess() || ((STATE(FIXED_WING_LEGACY) && (navGetCurrentStateFlags() & NAV_CTL_LAUNCH))) ) {
         noZoneRTH = false;
         return;
     } 
@@ -1532,6 +1532,11 @@ int8_t geozoneCheckForNFZAtCourse(bool isRTH)
     } 
 
     return waypointCount;
+}
+
+bool isGeozoneActive(void) 
+{
+    return activeGeoZonesCount > 0;
 }
 
 void geozoneUpdateMaxHomeAltitude(void) {

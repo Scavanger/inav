@@ -235,19 +235,20 @@ typedef enum {
     NAV_PERSISTENT_ID_UNUSED_4                                  = 37, // was NAV_STATE_WAYPOINT_HOVER_ABOVE_HOME
     NAV_PERSISTENT_ID_RTH_TRACKBACK                             = 38,
 
-    NAV_PERSISTENT_ID_SEND_TO_INITALIZE                         = 39,
-    NAV_PERSISTENT_ID_SEND_TO_IN_PROGRES                        = 40,
-    NAV_PERSISTENT_ID_SEND_TO_FINISHED                          = 41
-
     NAV_PERSISTENT_ID_MIXERAT_INITIALIZE                        = 39,
     NAV_PERSISTENT_ID_MIXERAT_IN_PROGRESS                       = 40,
     NAV_PERSISTENT_ID_MIXERAT_ABORT                             = 41,
+
     NAV_PERSISTENT_ID_FW_LANDING_CLIMB_TO_LOITER                = 42,
     NAV_PERSISTENT_ID_FW_LANDING_LOITER                         = 43,
     NAV_PERSISTENT_ID_FW_LANDING_APPROACH                       = 44,
     NAV_PERSISTENT_ID_FW_LANDING_GLIDE                          = 45,
     NAV_PERSISTENT_ID_FW_LANDING_FLARE                          = 46,
     NAV_PERSISTENT_ID_FW_LANDING_ABORT                          = 47,
+
+        NAV_PERSISTENT_ID_SEND_TO_INITALIZE                     = 48,
+    NAV_PERSISTENT_ID_SEND_TO_IN_PROGRES                        = 49,
+    NAV_PERSISTENT_ID_SEND_TO_FINISHED                          = 50
 } navigationPersistentId_e;
 
 typedef enum {

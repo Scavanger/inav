@@ -3581,7 +3581,7 @@ static bool osdDrawSingleElement(uint8_t item)
 #if defined(USE_GEOZONE) && defined(USE_GPS)
         case OSD_COURSE_TO_FENCE:
         {
-            if (navigationPositionEstimateIsHealthy()) {
+            if (navigationPositionEstimateIsHealthy() && isGeozoneActive()) {
                 int16_t panHomeDirOffset = 0;
                 if (!(osdConfig()->pan_servo_pwm2centideg == 0)){
                     panHomeDirOffset = osdGetPanServoOffset();
@@ -3590,7 +3590,9 @@ static bool osdDrawSingleElement(uint8_t item)
                 int direction = CENTIDEGREES_TO_DEGREES(geozone.directionToNearestZone) - flightDirection + panHomeDirOffset;
                 osdDrawDirArrow(osdDisplayPort, osdGetDisplayPortCanvas(), OSD_DRAW_POINT_GRID(elemPosX, elemPosY), direction);            
             } else {
-                TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
+                if (isGeozoneActive()) {
+                    TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
+                }
                 displayWriteCharWithAttr(osdDisplayPort, elemPosX, elemPosY, '-', elemAttr);
             }
         break;
@@ -3598,7 +3600,7 @@ static bool osdDrawSingleElement(uint8_t item)
         
         case OSD_H_DIST_TO_FENCE:
         {
-            if (navigationPositionEstimateIsHealthy()) {
+            if (navigationPositionEstimateIsHealthy() && isGeozoneActive()) {
                 char buff2[12];
                 osdFormatDistanceSymbol(buff2, geozone.distanceHorToNearestZone, 0);
                 tfp_sprintf(buff, "FD  %s", buff2 );
@@ -3610,7 +3612,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
         case OSD_V_DIST_TO_FENCE:
         {
-            if (navigationPositionEstimateIsHealthy()) {
+            if (navigationPositionEstimateIsHealthy() && isGeozoneActive()) {
                 char buff2[12];
                 osdFormatAltitudeSymbol(buff2, abs(geozone.distanceVertToNearestZone));
                 tfp_sprintf(buff, "FD %s", buff2);

@@ -75,7 +75,7 @@ static int simPort = 0;
 static char **c_argv;
 
 static void printVersion(void) {
-    fprintf(stderr, "INAV %d.%d.%d SITL (%s)\n", FC_VERSION_MAJOR, FC_VERSION_MINOR, FC_VERSION_PATCH_LEVEL, shortGitRevision);
+    fprintf(stderr, "%s %d.%d.%d SITL (%s)\n", FC_FIRMWARE_NAME, FC_VERSION_MAJOR, FC_VERSION_MINOR, FC_VERSION_PATCH_LEVEL, shortGitRevision);
 }
 
 void systemInit(void) {

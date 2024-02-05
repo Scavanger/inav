@@ -109,6 +109,7 @@ typedef struct geozone_s {
 extern geozone_t geozone;
 
 void geozoneReset(void);
+bool isGeozoneActive(void);
 uint8_t geozoneGetUsedVerticesCount(void);
 void geozoneResetVertices(int8_t zoneId, int16_t idx);
 void geozoneUpdate(timeUs_t curentTimeUs);
