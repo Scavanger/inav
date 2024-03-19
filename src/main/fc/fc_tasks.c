@@ -322,6 +322,15 @@ void taskUpdateAux(timeUs_t currentTimeUs)
 #endif
 }
 
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+void geozoneUpdateTask(timeUs_t currentTimeUs)
+{
+    if (feature(FEATURE_GEOZONE)) {
+        geozoneUpdate(currentTimeUs);
+    }
+}
+#endif
+
 void fcTasksInit(void)
 {
     schedulerInit();
@@ -408,6 +417,9 @@ void fcTasksInit(void)
 #endif
 #if defined(USE_SMARTPORT_MASTER)
     setTaskEnabled(TASK_SMARTPORT_MASTER, true);
+#endif
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+    setTaskEnabled(TASK_GEOZONE, feature(FEATURE_GEOZONE));
 #endif
 }
 
@@ -651,4 +663,12 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .desiredPeriod = TASK_PERIOD_HZ(TASK_AUX_RATE_HZ),          // 100Hz @10ms
         .staticPriority = TASK_PRIORITY_HIGH,
     },
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+    [TASK_GEOZONE] = {
+        .taskName = "GEOZONE",
+        .taskFunc = geozoneUpdateTask,
+        .desiredPeriod = TASK_PERIOD_HZ(5),
+        .staticPriority = TASK_PRIORITY_MEDIUM,
+    },
+#endif
 };

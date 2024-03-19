@@ -358,6 +358,11 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_FW_LANDING_GLIDE(naviga
 static navigationFSMEvent_t navOnEnteringState_NAV_STATE_FW_LANDING_FLARE(navigationFSMState_t previousState);
 static navigationFSMEvent_t navOnEnteringState_NAV_STATE_FW_LANDING_ABORT(navigationFSMState_t previousState);
 #endif
+#ifdef USE_GEOZONE
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_INITALIZE(navigationFSMState_t previousState);
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_IN_PROGRESS(navigationFSMState_t previousState);
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_FINISHED(navigationFSMState_t previousState); 
+#endif
 
 static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
     /** Idle state ******************************************************/
@@ -379,6 +384,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_COURSE_HOLD]          = NAV_STATE_COURSE_HOLD_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_CRUISE]               = NAV_STATE_CRUISE_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_MIXERAT]              = NAV_STATE_MIXERAT_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
 
@@ -451,6 +457,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_COURSE_HOLD]          = NAV_STATE_COURSE_HOLD_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_CRUISE]               = NAV_STATE_CRUISE_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
     /** CRUISE_HOLD mode ************************************************/
@@ -487,6 +494,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_WAYPOINT]             = NAV_STATE_WAYPOINT_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
 
@@ -509,6 +517,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_WAYPOINT]             = NAV_STATE_WAYPOINT_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
 
@@ -546,6 +555,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_WAYPOINT]             = NAV_STATE_WAYPOINT_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
 
@@ -568,6 +578,7 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
             [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_WAYPOINT]             = NAV_STATE_WAYPOINT_INITIALIZE,
             [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_SEND_TO]              = NAV_STATE_SEND_TO_INITALIZE,
         }
     },
 
@@ -1163,6 +1174,64 @@ static const navigationFSMStateDescriptor_t navFSM[NAV_STATE_COUNT] = {
         }
     },
 #endif
+
+#ifdef USE_GEOZONE
+    [NAV_STATE_SEND_TO_INITALIZE] = {
+        .persistentId = NAV_PERSISTENT_ID_SEND_TO_INITALIZE,
+        .onEntry = navOnEnteringState_NAV_STATE_SEND_TO_INITALIZE,
+        .timeoutMs = 0,
+        .stateFlags = NAV_CTL_ALT | NAV_CTL_POS | NAV_CTL_YAW | NAV_REQUIRE_ANGLE | NAV_REQUIRE_MAGHOLD | NAV_REQUIRE_THRTILT | NAV_AUTO_WP,
+        .mapToFlightModes = NAV_SEND_TO,
+        .mwState = MW_NAV_STATE_NONE,
+        .mwError = MW_NAV_ERROR_NONE,
+        .onEvent = {
+            [NAV_FSM_EVENT_SUCCESS]                        = NAV_STATE_SEND_TO_IN_PROGESS,
+            [NAV_FSM_EVENT_ERROR]                          = NAV_STATE_IDLE,
+            [NAV_FSM_EVENT_SWITCH_TO_IDLE]                 = NAV_STATE_IDLE,
+        } 
+    }, 
+
+    [NAV_STATE_SEND_TO_IN_PROGESS] = {
+        .persistentId = NAV_PERSISTENT_ID_SEND_TO_IN_PROGRES,
+        .onEntry = navOnEnteringState_NAV_STATE_SEND_TO_IN_PROGRESS,
+        .timeoutMs = 10,
+        .stateFlags = NAV_CTL_ALT | NAV_CTL_POS | NAV_CTL_YAW | NAV_REQUIRE_ANGLE | NAV_REQUIRE_MAGHOLD | NAV_REQUIRE_THRTILT | NAV_AUTO_WP,
+        .mapToFlightModes = NAV_SEND_TO,
+        .mwState = MW_NAV_STATE_NONE,
+        .mwError = MW_NAV_ERROR_NONE,
+        .onEvent = {
+            [NAV_FSM_EVENT_TIMEOUT]                        = NAV_STATE_SEND_TO_IN_PROGESS,   // re-process the state
+            [NAV_FSM_EVENT_SUCCESS]                        = NAV_STATE_SEND_TO_FINISHED,       // successfully reached waypoint
+            [NAV_FSM_EVENT_SWITCH_TO_IDLE]                 = NAV_STATE_IDLE,
+            [NAV_FSM_EVENT_SWITCH_TO_ALTHOLD]              = NAV_STATE_ALTHOLD_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_POSHOLD_3D]           = NAV_STATE_POSHOLD_3D_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_COURSE_HOLD]          = NAV_STATE_COURSE_HOLD_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_CRUISE]               = NAV_STATE_CRUISE_INITIALIZE,
+        }
+    },
+     [NAV_STATE_SEND_TO_FINISHED] = {
+        .persistentId = NAV_PERSISTENT_ID_SEND_TO_FINISHED,
+        .onEntry = navOnEnteringState_NAV_STATE_SEND_TO_FINISHED,
+        .timeoutMs = 0,
+        .stateFlags = NAV_CTL_ALT | NAV_CTL_POS | NAV_CTL_YAW | NAV_REQUIRE_ANGLE | NAV_REQUIRE_MAGHOLD | NAV_REQUIRE_THRTILT | NAV_AUTO_WP,
+        .mapToFlightModes = NAV_SEND_TO,
+        .mwState = MW_NAV_STATE_NONE,
+        .mwError = MW_NAV_ERROR_NONE,
+        .onEvent = {
+            [NAV_FSM_EVENT_TIMEOUT]                        = NAV_STATE_SEND_TO_FINISHED,   // re-process the state
+            [NAV_FSM_EVENT_SWITCH_TO_IDLE]                 = NAV_STATE_IDLE,
+            [NAV_FSM_EVENT_SWITCH_TO_ALTHOLD]              = NAV_STATE_ALTHOLD_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_POSHOLD_3D]           = NAV_STATE_POSHOLD_3D_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_RTH]                  = NAV_STATE_RTH_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING]    = NAV_STATE_EMERGENCY_LANDING_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_COURSE_HOLD]          = NAV_STATE_COURSE_HOLD_INITIALIZE,
+            [NAV_FSM_EVENT_SWITCH_TO_CRUISE]               = NAV_STATE_CRUISE_INITIALIZE,
+        }
+    },
+#endif
+
 };
 
 static navigationFSMStateFlags_t navGetStateFlags(navigationFSMState_t state)
@@ -1418,6 +1487,10 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_INITIALIZE(navigati
     // If we have valid position sensor or configured to ignore it's loss at initial stage - continue
     if ((posControl.flags.estPosStatus >= EST_USABLE) || navConfig()->general.flags.rth_climb_ignore_emerg) {
         // Prepare controllers
+#ifdef USE_GEOZONE
+        geozoneResetRTH();
+        geozoneSetupRTH();
+#endif
         resetPositionController();
         resetAltitudeController(false);     // Make sure surface tracking is not enabled - RTH uses global altitude, not AGL
         setupAltitudeController();
@@ -1614,22 +1687,56 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HEAD_HOME(navigatio
 
     // If we have position sensor - continue home
     if ((posControl.flags.estPosStatus >= EST_USABLE)) {
-        fpVector3_t * tmpHomePos = rthGetHomeTargetPosition(RTH_HOME_ENROUTE_PROPORTIONAL);
-
-        if (isWaypointReached(tmpHomePos, 0)) {
-            // Successfully reached position target - update XYZ-position
-            setDesiredPosition(tmpHomePos, posControl.rthState.homePosition.heading, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING);
-
-            posControl.landingDelay = 0;
-
-            if (navConfig()->general.flags.rth_use_linear_descent && posControl.rthState.rthLinearDescentActive)
-                posControl.rthState.rthLinearDescentActive = false;
-
-            return NAV_FSM_EVENT_SUCCESS;       // NAV_STATE_RTH_HOVER_PRIOR_TO_LANDING
-        } else {
-            setDesiredPosition(tmpHomePos, 0, NAV_POS_UPDATE_Z | NAV_POS_UPDATE_XY);
+#ifdef USE_GEOZONE
+        // Check for NFZ in our way
+        int wpCount = geozoneCheckForNFZAtCourse(true);
+        if (wpCount > 0) {
+            calculateAndSetActiveWaypointToLocalPosition(geozoneGetCurrentRthAvoidWaypoint());
             return NAV_FSM_EVENT_NONE;
+        } else if (geozone.avoidInRTHInProgress) {
+            if (isWaypointReached(geozoneGetCurrentRthAvoidWaypoint(), 0)) {                
+                if (geoZoneIsLastRthWaypoint()) {
+                    // Already at Home?
+                    fpVector3_t *tmpHomePos = rthGetHomeTargetPosition(RTH_HOME_ENROUTE_PROPORTIONAL);
+                    if (isWaypointReached(tmpHomePos, 0)) {
+                        // Successfully reached position target - update XYZ-position
+                        setDesiredPosition(tmpHomePos, posControl.rthState.homePosition.heading, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING);
+                        return NAV_FSM_EVENT_SUCCESS;       // NAV_STATE_RTH_HOVER_PRIOR_TO_LANDING
+                    }
+                    
+                    posControl.rthState.rthInitialAltitude = posControl.actualState.abs.pos.z;
+                    return NAV_FSM_EVENT_SWITCH_TO_NAV_STATE_RTH_INITIALIZE;
+                } else {
+                    geozoneAdvanceRthAvoidWaypoint();
+                    calculateAndSetActiveWaypointToLocalPosition(geozoneGetCurrentRthAvoidWaypoint());
+                    return NAV_FSM_EVENT_NONE;
+                }
+            } 
+            setDesiredPosition(geozoneGetCurrentRthAvoidWaypoint(), 0, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_BEARING);
+            return NAV_FSM_EVENT_NONE;
+        } else if (wpCount < 0 && geoZoneConfig()->noWayHomeAction == NO_WAY_HOME_ACTION_EMRG_LAND) {
+                return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
+        } else {
+#endif
+            fpVector3_t * tmpHomePos = rthGetHomeTargetPosition(RTH_HOME_ENROUTE_PROPORTIONAL);
+
+            if (isWaypointReached(tmpHomePos, 0)) {
+                // Successfully reached position target - update XYZ-position
+                setDesiredPosition(tmpHomePos, posControl.rthState.homePosition.heading, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_HEADING);
+
+                posControl.landingDelay = 0;
+
+                if (navConfig()->general.flags.rth_use_linear_descent && posControl.rthState.rthLinearDescentActive)
+                    posControl.rthState.rthLinearDescentActive = false;
+
+                return NAV_FSM_EVENT_SUCCESS;       // NAV_STATE_RTH_HOVER_PRIOR_TO_LANDING
+            } else {
+                setDesiredPosition(tmpHomePos, 0, NAV_POS_UPDATE_Z | NAV_POS_UPDATE_XY);
+                return NAV_FSM_EVENT_NONE;
+            }
+#ifdef USE_GEOZONE
         }
+#endif
     }
     /* Position sensor failure timeout - land */
     else if (checkForPositionSensorTimeout()) {
@@ -1802,7 +1909,9 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_FINISHED(navigation
     if (STATE(ALTITUDE_CONTROL)) {
         updateClimbRateToAltitudeController(-1.1f * navConfig()->general.land_minalt_vspd, 0, ROC_TO_ALT_CONSTANT);  // FIXME
     }
-
+#ifdef USE_GEOZONE
+    geozoneResetRTH();
+#endif
     // Prevent I-terms growing when already landed
     pidResetErrorAccumulators();
     return NAV_FSM_EVENT_NONE;
@@ -2461,6 +2570,64 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_FW_LANDING_ABORT(naviga
 }
 #endif
 
+#ifdef USE_GEOZONE
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_INITALIZE(navigationFSMState_t previousState)
+{
+    UNUSED(previousState);
+    
+    if (checkForPositionSensorTimeout()) {
+        return NAV_FSM_EVENT_SWITCH_TO_IDLE;
+    }
+
+    resetPositionController();
+    resetAltitudeController(false);
+
+     if (navConfig()->general.flags.rth_tail_first && !STATE(FIXED_WING_LEGACY)) {
+        setDesiredPosition(&posControl.sendTo.targetPos, 0, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_BEARING_TAIL_FIRST);
+    } else {
+        setDesiredPosition(&posControl.sendTo.targetPos, 0, NAV_POS_UPDATE_XY | NAV_POS_UPDATE_Z | NAV_POS_UPDATE_BEARING);
+    }
+
+    posControl.sendTo.startTime = millis();
+    return NAV_FSM_EVENT_SUCCESS;
+}
+
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_IN_PROGRESS(navigationFSMState_t previousState)
+{
+    UNUSED(previousState);
+
+    // "Send to" is designed to kick in even user is making inputs, lock sticks for a short time to avoid the mode ends immediately
+    if (posControl.sendTo.lockSticks && millis() - posControl.sendTo.startTime > posControl.sendTo.lockStickTime) {
+        posControl.sendTo.lockSticks = false;
+    }
+
+    if (!posControl.sendTo.lockSticks && areSticksDeflected()) {
+        abortSendTo();
+        return NAV_FSM_EVENT_SWITCH_TO_IDLE;
+    }
+
+    if (calculateDistanceToDestination(&posControl.sendTo.targetPos) <= posControl.sendTo.targetRange ) {
+        if (posControl.sendTo.altitudeTargetRange > 0) {
+            if ((getEstimatedActualPosition(Z) > posControl.sendTo.targetPos.z - posControl.sendTo.altitudeTargetRange) && (getEstimatedActualPosition(Z) < posControl.sendTo.targetPos.z +  posControl.sendTo.altitudeTargetRange)) {
+                return NAV_FSM_EVENT_SUCCESS;
+            } else {
+                return NAV_FSM_EVENT_NONE;
+            }
+        }
+        return NAV_FSM_EVENT_SUCCESS;
+    }
+    return NAV_FSM_EVENT_NONE;
+}
+
+static navigationFSMEvent_t navOnEnteringState_NAV_STATE_SEND_TO_FINISHED(navigationFSMState_t previousState)
+{
+    UNUSED(previousState);
+    posControl.sendTo.lockSticks = false;
+    posControl.flags.sendToActive = false;
+    return NAV_FSM_EVENT_NONE;
+}
+#endif
+
 static navigationFSMState_t navSetNewFSMState(navigationFSMState_t newState)
 {
     navigationFSMState_t previousState;
@@ -2548,6 +2715,11 @@ static fpVector3_t * rthGetHomeTargetPosition(rthTargetMode_e mode)
     switch (mode) {
         case RTH_HOME_ENROUTE_INITIAL:
             posControl.rthState.homeTmpWaypoint.z = posControl.rthState.rthInitialAltitude;
+#ifdef USE_GEOZONE
+            if (geozone.currentzoneMaxAltitude > 0) {
+                posControl.rthState.homeTmpWaypoint.z = MIN(geozone.currentzoneMaxAltitude, posControl.rthState.homeTmpWaypoint.z);
+            }
+#endif
             break;
 
         case RTH_HOME_ENROUTE_PROPORTIONAL:
@@ -2561,6 +2733,11 @@ static fpVector3_t * rthGetHomeTargetPosition(rthTargetMode_e mode)
                     posControl.rthState.homeTmpWaypoint.z = posControl.rthState.rthFinalAltitude;
                 }
             }
+#ifdef USE_GEOZONE
+            if (geozone.distanceVertToNearestZone < 0 && ABS(geozone.distanceVertToNearestZone) < geoZoneConfig()->safeAltitudeDistance) {
+                posControl.rthState.homeTmpWaypoint.z += geoZoneConfig()->safeAltitudeDistance;
+            }
+#endif
             break;
 
         case RTH_HOME_ENROUTE_FINAL:
@@ -2767,6 +2944,17 @@ const navEstimatedPosVel_t * navGetCurrentActualPositionAndVelocity(void)
 }
 
 /*-----------------------------------------------------------
+ * Calculates 2D distance between two points
+ *-----------------------------------------------------------*/
+float calculateDistance2(const fpVector2_t* startPos, const fpVector2_t* destinationPos)
+{
+	const float deltaX = destinationPos->x - startPos->x;
+	const float deltaY = destinationPos->y - startPos->y;
+
+	return calc_length_pythagorean_2D(deltaX, deltaY);
+}
+
+/*-----------------------------------------------------------
  * Calculates distance and bearing to destination point
  *-----------------------------------------------------------*/
 static uint32_t calculateDistanceFromDelta(float deltaX, float deltaY)
@@ -2955,6 +3143,11 @@ static void updateDesiredRTHAltitude(void)
         posControl.rthState.rthInitialAltitude = posControl.actualState.abs.pos.z;
         posControl.rthState.rthFinalAltitude = posControl.actualState.abs.pos.z;
     }
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+    if (geozone.homeHasMaxAltitue) {
+        posControl.rthState.rthFinalAltitude = MIN(posControl.rthState.rthFinalAltitude, geozone.maxHomeAltitude);
+    }
+#endif
 }
 
 /*-----------------------------------------------------------
@@ -3154,6 +3347,9 @@ void updateHomePosition(void)
                     setHome = true;
                     break;
             }
+#if defined(USE_GEOZONE) && defined (USE_GPS)
+            geozoneUpdateMaxHomeAltitude();
+#endif
         }
     }
     else {
@@ -3538,12 +3734,25 @@ void updateClimbRateToAltitudeController(float desiredClimbRate, float targetAlt
 
             desiredClimbRate = direction * constrainf(verticalVelScaled, MIN_TARGET_CLIMB_RATE, absClimbRate);
         }
-
+        
         /*
-         * If max altitude is set, reset climb rate if altitude is reached and climb rate is > 0
+         * If max altitude is set (current geozone or by gloal setting), reset climb rate if altitude is reached and climb rate is > 0
          * In other words, when altitude is reached, allow it only to shrink
          */
-        if (navConfig()->general.max_altitude > 0 && altitudeToUse >= navConfig()->general.max_altitude && desiredClimbRate > 0) {
+#ifdef USE_GEOZONE
+        int32_t currentMaxAltitude = 0;
+        if (navConfig()->general.max_altitude > 0 && geozone.currentzoneMaxAltitude > 0) {
+            currentMaxAltitude = MIN(navConfig()->general.max_altitude, geozone.currentzoneMaxAltitude);
+        } else if (navConfig()->general.max_altitude > 0) {
+            currentMaxAltitude = navConfig()->general.max_altitude;
+        } else if (geozone.currentzoneMaxAltitude > 0) {
+            currentMaxAltitude = geozone.currentzoneMaxAltitude;
+        }
+
+        if ((currentMaxAltitude > 0 && altitudeToUse >= currentMaxAltitude && desiredClimbRate > 0) || (geozone.currentzoneMinAltitude > 0 && altitudeToUse <= geozone.currentzoneMinAltitude && desiredClimbRate < 0 )) { 
+#else
+        if (currentMaxAltitude > 0 && altitudeToUse >= navConfig()->general.max_altitude && desiredClimbRate > 0) {
+#endif  
             desiredClimbRate = 0;
         }
 
@@ -4186,6 +4395,10 @@ void applyWaypointNavigationAndAltitudeHold(void)
         posControl.flags.rthTrackbackActive = false;
         posControl.rthTBWrapAroundCounter = -1;
 
+#ifdef USE_GEOZONE
+        posControl.flags.sendToActive = false;
+#endif
+
         return;
     }
 
@@ -4235,7 +4448,7 @@ void applyWaypointNavigationAndAltitudeHold(void)
 void switchNavigationFlightModes(void)
 {
     const flightModeFlags_e enabledNavFlightModes = navGetMappedFlightModes(posControl.navState);
-    const flightModeFlags_e disabledFlightModes = (NAV_ALTHOLD_MODE | NAV_RTH_MODE | NAV_FW_AUTOLAND | NAV_POSHOLD_MODE | NAV_WP_MODE | NAV_LAUNCH_MODE | NAV_COURSE_HOLD_MODE) & (~enabledNavFlightModes);
+    const flightModeFlags_e disabledFlightModes = (NAV_ALTHOLD_MODE | NAV_RTH_MODE | NAV_FW_AUTOLAND | NAV_POSHOLD_MODE | NAV_WP_MODE | NAV_LAUNCH_MODE | NAV_COURSE_HOLD_MODE | NAV_SEND_TO) & (~enabledNavFlightModes);
     DISABLE_FLIGHT_MODE(disabledFlightModes);
     ENABLE_FLIGHT_MODE(enabledNavFlightModes);
 }
@@ -4385,6 +4598,16 @@ static navigationFSMEvent_t selectNavEventFromBoxModeInput(void)
         if (posControl.flags.forcedRTHActivated) {
             return NAV_FSM_EVENT_SWITCH_TO_RTH;
         }
+
+#ifdef USE_GEOZONE
+        if (posControl.flags.sendToActive) {
+            return NAV_FSM_EVENT_SWITCH_TO_SEND_TO;
+        }
+
+        if (posControl.flags.forcedPosholdActive) {
+            return NAV_FSM_EVENT_SWITCH_TO_POSHOLD_3D;
+        }
+#endif
 
         /* WP mission activation control:
          * canActivateWaypoint & waypointWasActivated are used to prevent WP mission
@@ -4855,6 +5078,14 @@ void navigationInit(void)
 #ifdef USE_MULTI_MISSION
     posControl.multiMissionCount = 0;
 #endif
+
+#ifdef USE_GEOZONE
+    posControl.flags.sendToActive = false;
+    posControl.sendTo.lockSticks = false;
+    posControl.sendTo.lockStickTime = 0;
+    posControl.sendTo.startTime = 0;
+    posControl.sendTo.targetRange = 0;
+#endif
     /* Set initial surface invalid */
     posControl.actualState.surfaceMin = -1.0f;
 
@@ -4936,6 +5167,39 @@ rthState_e getStateOfForcedRTH(void)
         return RTH_IDLE;
     }
 }
+
+#ifdef USE_GEOZONE
+// "Send to" is not to intended to be activated by user, only by external event
+void activateSendTo(void)
+{
+    if (!geozone.avoidInRTHInProgress) {
+        abortFixedWingLaunch();
+        posControl.flags.sendToActive = true;
+        navProcessFSMEvents(selectNavEventFromBoxModeInput());
+    }
+}
+
+void abortSendTo(void)
+{
+    posControl.flags.sendToActive = false;
+    navProcessFSMEvents(selectNavEventFromBoxModeInput());
+}
+
+void activateForcedPosHold(void)
+{
+    if (!geozone.avoidInRTHInProgress) { 
+        abortFixedWingLaunch();
+        posControl.flags.forcedPosholdActive = true;
+        navProcessFSMEvents(selectNavEventFromBoxModeInput());
+    }
+}
+
+void abortForcedPosHold(void)
+{
+    posControl.flags.forcedPosholdActive = false;
+    navProcessFSMEvents(selectNavEventFromBoxModeInput());
+}
+#endif
 
 /*-----------------------------------------------------------
  * Ability to execute Emergency Landing on external event

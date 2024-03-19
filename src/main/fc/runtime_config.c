@@ -41,6 +41,7 @@ const char *armingDisableFlagNames[]= {
 #endif
 
 const armingFlag_e armDisableReasonsChecklist[] = {
+    ARMING_DISABLED_GEOZONE,
     ARMING_DISABLED_INVALID_SETTING,
     ARMING_DISABLED_HARDWARE_FAILURE,
     ARMING_DISABLED_PWM_OUTPUT_ERROR,

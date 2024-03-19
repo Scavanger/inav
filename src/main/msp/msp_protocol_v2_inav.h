@@ -106,3 +106,5 @@
 #define MSP2_INAV_CUSTOM_OSD_ELEMENTS           0x2100
 #define MSP2_INAV_SET_CUSTOM_OSD_ELEMENTS       0x2101
 
+#define MSP2_INAV_GEOZONES                      0x2110
+#define MSP2_INAV_SET_GEOZONES                  0x2111
