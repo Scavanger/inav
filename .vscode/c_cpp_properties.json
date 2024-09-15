@@ -36,6 +36,7 @@
                 "USE_ESC_SENSOR",
                 "USE_ADAPTIVE_FILTER",
                 "MCU_FLASH_SIZE 1024",
+                "SITL_BUILD"
             ],
             "configurationProvider": "ms-vscode.cmake-tools"
         }
