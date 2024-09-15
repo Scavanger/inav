@@ -218,7 +218,7 @@ static bool readChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint1
     }
 
     *c = screen[pos];
-    uint8_t page = getAttrPage(attrs[pos]);
+    uint8_t page = getAttrPage(attrs[pos]); 
     *c |= page << 8;
 
     if (attr) {
