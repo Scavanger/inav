@@ -3419,22 +3419,27 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
 
 #ifdef USE_GEOZONE
     case MSP2_INAV_SET_GEOZONE:
-        if (dataSize == 14) {
-            uint8_t geozoneId;
-            if (!sbufReadU8Safe(&geozoneId, src) || geozoneId >= MAX_GEOZONES_IN_CONFIG) {
+        if (dataSize == 1 || dataSize == 14) {
+            uint8_t geozoneId = 0;
+            if (!sbufReadU8Safe(&geozoneId, src)) {
                 return MSP_RESULT_ERROR;
             }
-            
-            geozoneResetVertices(geozoneId, -1);
-            geoZonesConfigMutable(geozoneId)->type = sbufReadU8(src); 
-            geoZonesConfigMutable(geozoneId)->shape = sbufReadU8(src);
-            geoZonesConfigMutable(geozoneId)->minAltitude = sbufReadU32(src);
-            geoZonesConfigMutable(geozoneId)->maxAltitude = sbufReadU32(src);  
-            geoZonesConfigMutable(geozoneId)->isSealevelRef = sbufReadU8(src);   
-            geoZonesConfigMutable(geozoneId)->fenceAction = sbufReadU8(src);
-            geoZonesConfigMutable(geozoneId)->vertexCount = sbufReadU8(src);
-        } else {
-            return MSP_RESULT_ERROR;
+
+            if (geozoneId == 0xff) {
+                geozoneReset(-1);
+                geozoneResetVertices(-1, -1);
+            } else if (geozoneId < MAX_GEOZONES_IN_CONFIG) {
+                geozoneResetVertices(geozoneId, -1);
+                geoZonesConfigMutable(geozoneId)->type = sbufReadU8(src); 
+                geoZonesConfigMutable(geozoneId)->shape = sbufReadU8(src);
+                geoZonesConfigMutable(geozoneId)->minAltitude = sbufReadU32(src);
+                geoZonesConfigMutable(geozoneId)->maxAltitude = sbufReadU32(src);  
+                geoZonesConfigMutable(geozoneId)->isSealevelRef = sbufReadU8(src);   
+                geoZonesConfigMutable(geozoneId)->fenceAction = sbufReadU8(src);
+                geoZonesConfigMutable(geozoneId)->vertexCount = sbufReadU8(src);
+            } else {
+                return MSP_RESULT_ERROR;
+            }
         }
         break;
     case MSP2_INAV_SET_GEOZONE_VERTEX:
