@@ -266,7 +266,7 @@ jobs:
           name: ${{ env.BUILD_NAME }}_SITL-WIN
           path: | 
             ./build_SITL/*.exe
-            /bin/cygwin1.dll
+            ./build_SITL/cygwin1.dll
 
   test:
     #needs: [build]
