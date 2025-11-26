@@ -3,6 +3,8 @@ name: Build firmware
 # are working on the main repo and want to trigger
 # a CI build submit a draft PR.
 on:
+  workflow_dispatch:
+  
   push:
     branches:
       - '!maintenance-8.x.x'
@@ -260,7 +262,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BUILD_NAME }}_SITL-WIN
-          path: ./build_SITL/*.exe
+          path: | 
+            ./build_SITL/*.exe
+            C:\tools\cygwin\bin\cygwin1.dll
 
   test:
     #needs: [build]
