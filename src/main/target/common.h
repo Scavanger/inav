@@ -41,6 +41,7 @@
 #define USE_SERIALRX_IBUS       // Cheap FlySky & Turnigy receivers
 #define USE_SERIALRX_FPORT
 #define USE_SERIALRX_FPORT2
+#define USE_RX_SIM
 
 //#define USE_DEV_TOOLS           // tools for dev use only. Undefine for release builds.
 
@@ -180,6 +181,7 @@
 #define USE_SIMULATOR
 #define USE_PITOT_VIRTUAL
 #define USE_FAKE_BATT_SENSOR
+#define USE_RANGEFINDER_FAKE
 
 #define USE_CMS_FONT_PREVIEW
 

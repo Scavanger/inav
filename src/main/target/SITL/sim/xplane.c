@@ -61,7 +61,7 @@
 
 #define XP_PORT 49000
 #define XPLANE_JOYSTICK_AXIS_COUNT 8
-
+#define XITL_DREF_VERSION 2
 
 static uint8_t pwmMapping[XP_MAX_PWM_OUTS];
 static uint8_t mappingCount;
@@ -73,6 +73,7 @@ static pthread_t listenThread;
 static bool initialized = false;
 static bool useImu = false;
 
+static int xitlDataRefVersion = -1;
 static float lattitude = 0;
 static float longitude = 0;
 static float elevation = 0;
@@ -98,6 +99,7 @@ static float joystickRaw[XPLANE_JOYSTICK_AXIS_COUNT];
 
 typedef enum
 {
+    DREF_XITL_DataRef_Version,
     DREF_LATITUDE,
     DREF_LONGITUDE,
     DREF_ELEVATION,
@@ -223,6 +225,10 @@ static void* listenWorker(void* arg)
 
             switch (dref)
             {
+                case DREF_XITL_DataRef_Version:
+                    xitlDataRefVersion = (int)value;
+                    break;
+                
                 case DREF_LATITUDE:
                     lattitude = value;
                     break;
@@ -430,6 +436,11 @@ static void* listenWorker(void* arg)
             ENABLE_ARMING_FLAG(SIMULATOR_MODE_SITL);
             // Aircraft can wobble on the runway and prevents calibration of the accelerometer
             ENABLE_STATE(ACCELEROMETER_CALIBRATED);
+
+            if (xitlDataRefVersion >= XITL_DREF_VERSION) {
+                printf("[SIM] X-Plane INAV-XITL plugin detected. DataRef version %d.\n", xitlDataRefVersion);
+            }
+
             initialized = true;
         }
 
@@ -481,6 +492,7 @@ bool simXPlaneInit(char* ip, int port, uint8_t* mapping, uint8_t mapCount, bool 
     }
 
     while (!initialized) {
+        registerDref(DREF_XITL_DataRef_Version, "inav_xitl/plugin/xitlDrefVersion", 100);
         registerDref(DREF_LATITUDE, "sim/flightmodel/position/latitude", 100);
         registerDref(DREF_LONGITUDE, "sim/flightmodel/position/longitude", 100);
         registerDref(DREF_ELEVATION, "sim/flightmodel/position/elevation", 100);

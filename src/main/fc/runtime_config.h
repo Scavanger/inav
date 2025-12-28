@@ -178,10 +178,12 @@ flightModeForTelemetry_e getFlightModeForTelemetry(void);
 
 #ifdef USE_SIMULATOR
 
-#define SIMULATOR_MSP_VERSION  2     // Simulator MSP version
+#define SIMULATOR_MSP_VERSION_2  2     // Simulator MSP version
+#define SIMULATOR_MSP_VERSION_3  3     // Simulator MSP version
 #define SIMULATOR_BARO_TEMP    25    // °C
 #define SIMULATOR_FULL_BATTERY 126   // Volts*10
 #define SIMULATOR_HAS_OPTION(flag) ((simulatorData.flags & flag) != 0)
+#define HITL_SIM_MAX_RC_INPUTS 8
 
 typedef enum {
     HITL_RESET_FLAGS            = (0 << 0),
@@ -194,7 +196,10 @@ typedef enum {
     HITL_AIRSPEED               = (1 << 6),
     HITL_EXTENDED_FLAGS         = (1 << 7), // Extend MSP_SIMULATOR format 2
     HITL_GPS_TIMEOUT            = (1 << 8),
-    HITL_PITOT_FAILURE          = (1 << 9)
+    HITL_PITOT_FAILURE          = (1 << 9),
+    HITL_CURRENT_SENSOR         = (1 << 10),
+    HITL_SIM_RC_INPUT           = (1 << 11),  // Simulate RC input from Joystick inputs in XPlane
+    HITL_RANGEFINDER            = (1 << 12), // Simulate Rangefinder data
 } simulatorFlags_t;
 
 typedef struct {
@@ -203,6 +208,10 @@ typedef struct {
     uint8_t vbat;      // 126 -> 12.6V
     uint16_t airSpeed; // cm/s
     int16_t input[4];
+    uint16_t current;  // in 0.1A steps
+    uint16_t rcInput[HITL_SIM_MAX_RC_INPUTS];
+    uint16_t rssi;
+    uint16_t rangefinder; // in cm
 } simulatorData_t;
 
 extern simulatorData_t simulatorData;
