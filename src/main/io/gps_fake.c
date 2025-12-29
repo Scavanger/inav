@@ -40,6 +40,8 @@
 #include "io/gps.h"
 #include "io/gps_private.h"
 
+static bool newData = false;
+
 void gpsFakeRestart(void)
 {
     // NOP
@@ -47,7 +49,11 @@ void gpsFakeRestart(void)
 
 void gpsFakeHandle(void)
 {
-    gpsProcessNewSolutionData(false);
+    if (newData) {
+        gpsProcessNewSolutionData(false);
+        newData = false;
+    }
+    
 }
 
 void gpsFakeSet(
@@ -93,7 +99,7 @@ void gpsFakeSet(
         gpsSolDRV.time.millis  = 0;
         gpsSolDRV.flags.validTime = gpsSol.fixType >= 3;
     }
-    
+    newData = true;
     gpsProcessNewDriverData();
 }
    

@@ -372,6 +372,7 @@ static void* listenWorker(void* arg)
             rxSimSetChannelValue(channelValues, XPLANE_JOYSTICK_AXIS_COUNT);
         }
 
+    
         gpsFakeSet(
             GPS_FIX_3D,
             16,
@@ -385,6 +386,7 @@ static void* listenWorker(void* arg)
             0, //(int16_t)roundf(-local_vy * 100),
             0
         );
+        
 
         const int32_t altitideOverGround = (int32_t)roundf(agl * 100);
         if (altitideOverGround > 0 && altitideOverGround <= RANGEFINDER_VIRTUAL_MAX_RANGE_CM) {

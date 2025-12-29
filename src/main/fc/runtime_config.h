@@ -182,7 +182,7 @@ flightModeForTelemetry_e getFlightModeForTelemetry(void);
 #define SIMULATOR_MSP_VERSION_3  3     // Simulator MSP version
 #define SIMULATOR_BARO_TEMP    25    // °C
 #define SIMULATOR_FULL_BATTERY 126   // Volts*10
-#define SIMULATOR_HAS_OPTION(flag) ((simulatorData.flags & flag) != 0)
+#define SIMULATOR_HAS_OPTION(flag) ((simulatorData.flags & (flag)) != 0)
 #define HITL_SIM_MAX_RC_INPUTS 8
 
 typedef enum {
@@ -203,7 +203,7 @@ typedef enum {
 } simulatorFlags_t;
 
 typedef struct {
-    simulatorFlags_t flags;
+    uint16_t flags;
     uint8_t debugIndex;
     uint8_t vbat;      // 126 -> 12.6V
     uint16_t airSpeed; // cm/s

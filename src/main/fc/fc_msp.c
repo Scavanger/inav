@@ -4053,33 +4053,18 @@ static mspResult_e mspProcessSimulatorCommand(sbuf_t *dst, sbuf_t *src, const in
     if (simMspVersion != SIMULATOR_MSP_VERSION_2 && simMspVersion != SIMULATOR_MSP_VERSION_3) {
         return MSP_RESULT_ERROR;
     }
-
+    
     // Backward compatibility for HITL Plugin 1.X
-    if (simMspVersion == SIMULATOR_MSP_VERSION_2) {
-        simulatorData.flags = sbufReadU8(src);
-    } else {
-        simulatorData.flags = sbufReadU16(src);
+    simulatorData.flags = sbufReadU8(src);
+
+    if (simMspVersion == SIMULATOR_MSP_VERSION_3) {
+        simulatorData.flags |= ((uint16_t)sbufReadU8(src)) << 8;
     }
     
-    if (!SIMULATOR_HAS_OPTION(HITL_ENABLE)) {
-
-        if (ARMING_FLAG(SIMULATOR_MODE_HITL)) { // Just once
-            DISABLE_ARMING_FLAG(SIMULATOR_MODE_HITL);
-
-#ifdef USE_BARO
-        if ( requestedSensors[SENSOR_INDEX_BARO] != BARO_NONE ) {
-            baroStartCalibration();
-        }
-#endif
-#ifdef USE_MAG
-            DISABLE_STATE(COMPASS_CALIBRATED);
-            compassInit();
-#endif
-            simulatorData.flags = HITL_RESET_FLAGS;
-            // Review: Many states were affected. Reboot?
-
-            disarm(DISARM_SWITCH);  // Disarm to prevent motor output!!!
-        }
+    // Check if simulator is disabled and was previously enabled (flags != 0)
+    if (!SIMULATOR_HAS_OPTION(HITL_ENABLE) && simulatorData.flags) {
+        fcReboot(false);
+        return MSP_RESULT_NO_REPLY;
     } else {
         if (!ARMING_FLAG(SIMULATOR_MODE_HITL)) { // Just once
 #ifdef USE_BARO
@@ -4108,35 +4093,28 @@ static mspResult_e mspProcessSimulatorCommand(sbuf_t *dst, sbuf_t *src, const in
 
         if (dataSize >= 14) {
 
-            if (feature(FEATURE_GPS) && SIMULATOR_HAS_OPTION(HITL_HAS_NEW_GPS_DATA)) {
-                gpsSolDRV.fixType = sbufReadU8(src);
-                gpsSolDRV.hdop = gpsSolDRV.fixType == GPS_NO_FIX ? 9999 : 100;
-                gpsSolDRV.numSat = sbufReadU8(src);
-
-                if (gpsSolDRV.fixType != GPS_NO_FIX) {
-                    gpsSolDRV.flags.validVelNE = true;
-                    gpsSolDRV.flags.validVelD = true;
-                    gpsSolDRV.flags.validEPE = true;
-                    gpsSolDRV.flags.validTime = false;
-
-                    gpsSolDRV.llh.lat = sbufReadU32(src);
-                    gpsSolDRV.llh.lon = sbufReadU32(src);
-                    gpsSolDRV.llh.alt = sbufReadU32(src);
-                    gpsSolDRV.groundSpeed = (int16_t)sbufReadU16(src);
-                    gpsSolDRV.groundCourse = (int16_t)sbufReadU16(src);
-
-                    gpsSolDRV.velNED[X] = (int16_t)sbufReadU16(src);
-                    gpsSolDRV.velNED[Y] = (int16_t)sbufReadU16(src);
-                    gpsSolDRV.velNED[Z] = (int16_t)sbufReadU16(src);
-
-                    gpsSolDRV.eph = 100;
-                    gpsSolDRV.epv = 100;
-                } else {
-                    sbufAdvance(src, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
-                }
-                // Feed data to navigation
-                gpsProcessNewDriverData();
-                gpsProcessNewSolutionData(false);
+            if (feature(FEATURE_GPS) && SIMULATOR_HAS_OPTION(HITL_HAS_NEW_GPS_DATA) && !SIMULATOR_HAS_OPTION(HITL_GPS_TIMEOUT)) {
+                const gpsFixType_e fixType = sbufReadU8(src);
+                const uint8_t numSat = sbufReadU8(src);
+                const int32_t latitude = (int32_t)sbufReadU32(src);
+                const int32_t longitude = (int32_t)sbufReadU32(src);
+                const int32_t altitude = (int32_t)sbufReadU32(src);
+                const int16_t groundSpeed = (int16_t)sbufReadU16(src);
+                const int16_t groundCourse = (int16_t)sbufReadU16(src);
+                const int16_t velNED[3] = {(int16_t)sbufReadU16(src), (int16_t)sbufReadU16(src), (int16_t)sbufReadU16(src)};
+                gpsFakeSet(
+                    fixType,
+                    numSat,
+                    latitude,
+                    longitude,
+                    altitude,
+                    groundSpeed,
+                    groundCourse,
+                    velNED[X],
+                    velNED[Y],
+                    velNED[Z],
+                    0
+                );                
             } else {
                 sbufAdvance(src, sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
             }
