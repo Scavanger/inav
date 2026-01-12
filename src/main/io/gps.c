@@ -527,6 +527,23 @@ bool gpsUpdate(void)
         return false;
     }
 
+    #ifdef USE_SIMULATOR
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL)) {
+        if ( SIMULATOR_HAS_OPTION(HITL_GPS_TIMEOUT)) {
+            gpsSetState(GPS_LOST_COMMUNICATION);
+            sensorsClear(SENSOR_GPS);
+            gpsStats.timeouts = 5;
+            gpsTryEstimateOnTimeout();
+        } else {
+            gpsSetState(GPS_RUNNING);
+            sensorsSet(SENSOR_GPS);
+        }
+        bool res = gpsSol.flags.hasNewData;
+        gpsSol.flags.hasNewData = false;
+        return res;
+    }
+#endif
+
     switch (gpsState.state) {
     default:
     case GPS_INITIALIZING:

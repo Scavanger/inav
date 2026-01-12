@@ -4046,6 +4046,160 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 	}
 }
 
+static void readMspSimulatorValues(sbuf_t *src, const int dataSize, const uint8_t simMspVersion)
+{
+   if (!ARMING_FLAG(SIMULATOR_MODE_HITL)) { // Just once
+#ifdef USE_BARO
+    if ( requestedSensors[SENSOR_INDEX_BARO] != BARO_NONE ) {
+        sensorsSet(SENSOR_BARO);
+        setTaskEnabled(TASK_BARO, true);
+        DISABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
+        baroStartCalibration();
+    }
+#endif
+
+#ifdef USE_MAG
+    if (compassConfig()->mag_hardware != MAG_NONE) {
+        sensorsSet(SENSOR_MAG);
+        ENABLE_STATE(COMPASS_CALIBRATED);
+        DISABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
+        mag.magADC[X] = 800;
+        mag.magADC[Y] = 0;
+        mag.magADC[Z] = 0;
+    }
+#endif
+        // Reinitialize GPS
+        ENABLE_ARMING_FLAG(SIMULATOR_MODE_HITL);
+        ENABLE_STATE(ACCELEROMETER_CALIBRATED);
+        LOG_DEBUG(SYSTEM, "Simulator enabled");
+    }
+
+    if (dataSize < 14) {
+        DISABLE_STATE(GPS_FIX);
+        return;
+    }
+
+    if (feature(FEATURE_GPS) && SIMULATOR_HAS_OPTION(HITL_HAS_NEW_GPS_DATA)) {
+        gpsSolDRV.fixType = sbufReadU8(src);
+        gpsSolDRV.hdop = gpsSolDRV.fixType == GPS_NO_FIX ? 9999 : 100;
+        gpsSolDRV.numSat = sbufReadU8(src);
+
+        if (gpsSolDRV.fixType != GPS_NO_FIX) {
+            gpsSolDRV.flags.validVelNE = true;
+            gpsSolDRV.flags.validVelD = true;
+            gpsSolDRV.flags.validEPE = true;
+            gpsSolDRV.flags.validTime = false;
+
+            gpsSolDRV.llh.lat = sbufReadU32(src);
+            gpsSolDRV.llh.lon = sbufReadU32(src);
+            gpsSolDRV.llh.alt = sbufReadU32(src);
+            gpsSolDRV.groundSpeed = (int16_t)sbufReadU16(src);
+            gpsSolDRV.groundCourse = (int16_t)sbufReadU16(src);
+
+            gpsSolDRV.velNED[X] = (int16_t)sbufReadU16(src);
+            gpsSolDRV.velNED[Y] = (int16_t)sbufReadU16(src);
+            gpsSolDRV.velNED[Z] = (int16_t)sbufReadU16(src);
+
+            gpsSolDRV.eph = 100;
+            gpsSolDRV.epv = 100;
+        } else {
+            sbufAdvance(src, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
+        }
+        // Feed data to navigation
+        gpsProcessNewDriverData();
+        gpsProcessNewSolutionData(false);                          
+    } else {
+        sbufAdvance(src, sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
+    }
+
+    if (!SIMULATOR_HAS_OPTION(HITL_USE_IMU)) {
+        attitude.values.roll = (int16_t)sbufReadU16(src);
+        attitude.values.pitch = (int16_t)sbufReadU16(src);
+        attitude.values.yaw = (int16_t)sbufReadU16(src);
+    } else {
+        sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
+    }
+
+    // Get the acceleration in 1G units
+    acc.accADCf[X] = ((int16_t)sbufReadU16(src)) / 1000.0f;
+    acc.accADCf[Y] = ((int16_t)sbufReadU16(src)) / 1000.0f;
+    acc.accADCf[Z] = ((int16_t)sbufReadU16(src)) / 1000.0f;
+    acc.accVibeSq[X] = 0.0f;
+    acc.accVibeSq[Y] = 0.0f;
+    acc.accVibeSq[Z] = 0.0f;
+
+    // Get the angular velocity in DPS
+    gyro.gyroADCf[X] = ((int16_t)sbufReadU16(src)) / 16.0f;
+    gyro.gyroADCf[Y] = ((int16_t)sbufReadU16(src)) / 16.0f;
+    gyro.gyroADCf[Z] = ((int16_t)sbufReadU16(src)) / 16.0f;
+
+    if (sensors(SENSOR_BARO)) {
+        baro.baroPressure = (int32_t)sbufReadU32(src);
+        baro.baroTemperature = DEGREES_TO_CENTIDEGREES(SIMULATOR_BARO_TEMP);
+    } else {
+        sbufAdvance(src, sizeof(uint32_t));
+    }
+
+    if (sensors(SENSOR_MAG)) {
+        mag.magADC[X] = ((int16_t)sbufReadU16(src)) / 20;  // 16000 / 20 = 800uT
+        mag.magADC[Y] = ((int16_t)sbufReadU16(src)) / 20;   //note that mag failure is simulated by setting all readings to zero
+        mag.magADC[Z] = ((int16_t)sbufReadU16(src)) / 20;
+    } else {
+        sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
+    }
+
+    if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
+        simulatorData.vbat = sbufReadU8(src);
+    } else {
+        simulatorData.vbat = SIMULATOR_FULL_BATTERY;
+    }
+
+    if (SIMULATOR_HAS_OPTION(HITL_AIRSPEED)) {
+        simulatorData.airSpeed = sbufReadU16(src);
+    } else if (SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
+        sbufReadU16(src);
+    }
+
+    if (simMspVersion == SIMULATOR_MSP_VERSION_3) {  
+        
+        if (SIMULATOR_HAS_OPTION(HITL_RANGEFINDER)) {
+            simulatorData.rangefinder = sbufReadU16(src);
+            if (simulatorData.rangefinder == 0xFFFF) {
+                fakeRangefindersSetData(-1);
+            } else {
+                fakeRangefindersSetData(simulatorData.rangefinder); 
+            }
+            
+        } else {
+            sbufReadU16(src);
+        }
+        
+        if (SIMULATOR_HAS_OPTION(HITL_CURRENT_SENSOR)) {
+            simulatorData.current = sbufReadU16(src);
+        } else {
+            sbufReadU16(src);
+        }
+        
+        if (SIMULATOR_HAS_OPTION(HITL_SIM_RC_INPUT)) {
+            for (int i = 0; i < HITL_SIM_MAX_RC_INPUTS; i++) {
+                simulatorData.rcInput[i] = sbufReadU16(src);
+            }
+            rxSimSetChannelValue(simulatorData.rcInput, HITL_SIM_MAX_RC_INPUTS);
+            simulatorData.rssi = sbufReadU16(src);
+            rxSimSetRssi(simulatorData.rssi);
+        } else {
+            sbufAdvance(src, sizeof(uint16_t) * HITL_SIM_MAX_RC_INPUTS + sizeof(uint16_t)); // + RSSI
+        }
+
+        rxSimSetFailsafe(SIMULATOR_HAS_OPTION(HITL_FAILSAFE_TRIGGERED));
+    }
+
+    // Backward compatibility for HITL Plugin 1.X
+    if (simMspVersion == SIMULATOR_MSP_VERSION_2 && SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
+        simulatorData.flags |= ((uint16_t)sbufReadU8(src)) << 8;
+    }
+}
+
 static mspResult_e mspProcessSimulatorCommand(sbuf_t *dst, sbuf_t *src, const int dataSize)
 {
     const uint8_t simMspVersion = sbufReadU8(src); // Get the Simulator MSP version
@@ -4061,152 +4215,13 @@ static mspResult_e mspProcessSimulatorCommand(sbuf_t *dst, sbuf_t *src, const in
         simulatorData.flags |= ((uint16_t)sbufReadU8(src)) << 8;
     }
     
-    // Check if simulator is disabled and was previously enabled (flags != 0)
-    if (!SIMULATOR_HAS_OPTION(HITL_ENABLE) && simulatorData.flags) {
-        fcReboot(false);
-        return MSP_RESULT_NO_REPLY;
-    } else {
-        if (!ARMING_FLAG(SIMULATOR_MODE_HITL)) { // Just once
-#ifdef USE_BARO
-            if ( requestedSensors[SENSOR_INDEX_BARO] != BARO_NONE ) {
-                sensorsSet(SENSOR_BARO);
-                setTaskEnabled(TASK_BARO, true);
-                DISABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
-                baroStartCalibration();
-            }
-#endif
-
-#ifdef USE_MAG
-            if (compassConfig()->mag_hardware != MAG_NONE) {
-                sensorsSet(SENSOR_MAG);
-                ENABLE_STATE(COMPASS_CALIBRATED);
-                DISABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
-                mag.magADC[X] = 800;
-                mag.magADC[Y] = 0;
-                mag.magADC[Z] = 0;
-            }
-#endif
-            ENABLE_ARMING_FLAG(SIMULATOR_MODE_HITL);
-            ENABLE_STATE(ACCELEROMETER_CALIBRATED);
-            LOG_DEBUG(SYSTEM, "Simulator enabled");
-        }
-
-        if (dataSize >= 14) {
-
-            if (feature(FEATURE_GPS) && SIMULATOR_HAS_OPTION(HITL_HAS_NEW_GPS_DATA) && !SIMULATOR_HAS_OPTION(HITL_GPS_TIMEOUT)) {
-                const gpsFixType_e fixType = sbufReadU8(src);
-                const uint8_t numSat = sbufReadU8(src);
-                const int32_t latitude = (int32_t)sbufReadU32(src);
-                const int32_t longitude = (int32_t)sbufReadU32(src);
-                const int32_t altitude = (int32_t)sbufReadU32(src);
-                const int16_t groundSpeed = (int16_t)sbufReadU16(src);
-                const int16_t groundCourse = (int16_t)sbufReadU16(src);
-                const int16_t velNED[3] = {(int16_t)sbufReadU16(src), (int16_t)sbufReadU16(src), (int16_t)sbufReadU16(src)};
-                gpsFakeSet(
-                    fixType,
-                    numSat,
-                    latitude,
-                    longitude,
-                    altitude,
-                    groundSpeed,
-                    groundCourse,
-                    velNED[X],
-                    velNED[Y],
-                    velNED[Z],
-                    0
-                );                
-            } else {
-                sbufAdvance(src, sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
-            }
-
-            if (!SIMULATOR_HAS_OPTION(HITL_USE_IMU)) {
-                attitude.values.roll = (int16_t)sbufReadU16(src);
-                attitude.values.pitch = (int16_t)sbufReadU16(src);
-                attitude.values.yaw = (int16_t)sbufReadU16(src);
-            } else {
-                sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
-            }
-
-            // Get the acceleration in 1G units
-            acc.accADCf[X] = ((int16_t)sbufReadU16(src)) / 1000.0f;
-            acc.accADCf[Y] = ((int16_t)sbufReadU16(src)) / 1000.0f;
-            acc.accADCf[Z] = ((int16_t)sbufReadU16(src)) / 1000.0f;
-            acc.accVibeSq[X] = 0.0f;
-            acc.accVibeSq[Y] = 0.0f;
-            acc.accVibeSq[Z] = 0.0f;
-
-            // Get the angular velocity in DPS
-            gyro.gyroADCf[X] = ((int16_t)sbufReadU16(src)) / 16.0f;
-            gyro.gyroADCf[Y] = ((int16_t)sbufReadU16(src)) / 16.0f;
-            gyro.gyroADCf[Z] = ((int16_t)sbufReadU16(src)) / 16.0f;
-
-            if (sensors(SENSOR_BARO)) {
-                baro.baroPressure = (int32_t)sbufReadU32(src);
-                baro.baroTemperature = DEGREES_TO_CENTIDEGREES(SIMULATOR_BARO_TEMP);
-            } else {
-                sbufAdvance(src, sizeof(uint32_t));
-            }
-
-            if (sensors(SENSOR_MAG)) {
-                mag.magADC[X] = ((int16_t)sbufReadU16(src)) / 20;  // 16000 / 20 = 800uT
-                mag.magADC[Y] = ((int16_t)sbufReadU16(src)) / 20;   //note that mag failure is simulated by setting all readings to zero
-                mag.magADC[Z] = ((int16_t)sbufReadU16(src)) / 20;
-            } else {
-                sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
-            }
-
-            if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
-                simulatorData.vbat = sbufReadU8(src);
-            } else {
-                simulatorData.vbat = SIMULATOR_FULL_BATTERY;
-            }
-
-            if (SIMULATOR_HAS_OPTION(HITL_AIRSPEED)) {
-                simulatorData.airSpeed = sbufReadU16(src);
-            } else {
-                if (SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
-                    sbufReadU16(src);
-                }
-            }
-
-            if (simMspVersion == SIMULATOR_MSP_VERSION_3) {  
-                
-                if (SIMULATOR_HAS_OPTION(HITL_RANGEFINDER)) {
-                    simulatorData.rangefinder = sbufReadU16(src);
-                    if (simulatorData.rangefinder == 0xFFFF) {
-                        fakeRangefindersSetData(-1);
-                    } else {
-                        fakeRangefindersSetData(simulatorData.rangefinder); 
-                    }
-                    
-                } else {
-                    sbufReadU16(src);
-                }
-                
-                if (SIMULATOR_HAS_OPTION(HITL_CURRENT_SENSOR)) {
-                    simulatorData.current = sbufReadU16(src);
-                } else {
-                    sbufReadU16(src);
-                }
-                
-                if (SIMULATOR_HAS_OPTION(HITL_SIM_RC_INPUT)) {
-                    for (int i = 0; i < HITL_SIM_MAX_RC_INPUTS; i++) {
-                        simulatorData.rcInput[i] = sbufReadU16(src);
-                    }
-                    rxSimSetChannelValue(simulatorData.rcInput, HITL_SIM_MAX_RC_INPUTS);
-                    simulatorData.rssi = sbufReadU16(src);
-                    rxSimSetRssi(simulatorData.rssi);
-                } else {
-                    sbufAdvance(src, sizeof(uint16_t) * HITL_SIM_MAX_RC_INPUTS + sizeof(uint16_t)); // + RSSI
-                }
-            }
-
-            // Backward compatibility for HITL Plugin 1.X
-            if (simMspVersion == SIMULATOR_MSP_VERSION_2 && SIMULATOR_HAS_OPTION(HITL_EXTENDED_FLAGS)) {
-                simulatorData.flags |= ((uint16_t)sbufReadU8(src)) << 8;
-            }
+    if (!SIMULATOR_HAS_OPTION(HITL_SITL_MODE)) {
+        // Check if simulator is disabled and was previously enabled (flags != 0)
+        if (!SIMULATOR_HAS_OPTION(HITL_ENABLE) && simulatorData.flags) {
+            fcReboot(false);
+            return MSP_RESULT_NO_REPLY;
         } else {
-            DISABLE_STATE(GPS_FIX);
+            readMspSimulatorValues(src, dataSize, simMspVersion);
         }
     }
 

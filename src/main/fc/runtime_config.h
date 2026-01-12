@@ -200,6 +200,8 @@ typedef enum {
     HITL_CURRENT_SENSOR         = (1 << 10),
     HITL_SIM_RC_INPUT           = (1 << 11),  // Simulate RC input from Joystick inputs in XPlane
     HITL_RANGEFINDER            = (1 << 12), // Simulate Rangefinder data
+    HITL_FAILSAFE_TRIGGERED     = (1 << 13), // Simulate Failsafe triggered condition
+    HITL_SITL_MODE              = (1 << 14), // For INAV XITL in Sitl mode (sends no emulated sensor data)
 } simulatorFlags_t;
 
 typedef struct {

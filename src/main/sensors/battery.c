@@ -636,7 +636,6 @@ void currentMeterUpdate(timeUs_t timeDelta)
 #ifdef USE_SIMULATOR
     if (ARMING_FLAG(SIMULATOR_MODE_HITL) && SIMULATOR_HAS_OPTION(HITL_CURRENT_SENSOR)) {
         amperage = ((uint16_t)simulatorData.current) * 10;
-        return;
     }
 #endif
 
